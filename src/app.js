@@ -71,10 +71,14 @@
     NO_ATTEMPT: 'Your attempt was reset by the invigilator. Please log in again.',
     BAD_PASSWORD: 'Wrong password.',
     NO_ADMIN: 'Admin password is not set up yet.',
-    PASSWORD_TOO_SHORT: 'Password must be at least 8 characters.',
+    PASSWORD_TOO_SHORT: 'Password must be at least 10 characters.',
     ALREADY_CONFIGURED: 'An admin password already exists. Please log in.',
     TITLE_REQUIRED: 'Please enter a test title.',
     NETWORK: 'No internet connection. Check your network and try again.',
+    BAD_ROLL: 'Roll number does not match our records for this email.',
+    BAD_PIN: 'Wrong PIN. Check the PIN given to you.',
+    TOO_MANY_ATTEMPTS: 'Too many wrong attempts. Wait 10–15 minutes or ask the invigilator.',
+    PAYLOAD_TOO_LARGE: 'Request too large.',
   };
   function errText(e) {
     const c = e && e.code;
@@ -100,6 +104,9 @@
       const e = new Error(msg); e.code = msg; e.status = r.status;
       if (r.status >= 500 || r.status === 429) e.network = true;
       throw e;
+    }
+    if (j && typeof j === 'object' && !Array.isArray(j) && typeof j.error === 'string') {
+      const e = new Error(j.error); e.code = j.error; throw e;
     }
     return j;
   }
@@ -195,6 +202,7 @@
       const name = h('input', { type: 'text', autocomplete: 'name', placeholder: 'As per college records' });
       const roll = h('input', { type: 'text', placeholder: 'Enrollment / roll number' });
       const access = h('input', { type: 'text', autocapitalize: 'characters', placeholder: 'Given by invigilator' });
+      const pin = h('input', { type: 'password', autocomplete: 'off', placeholder: 'Your personal PIN' });
       const agree = h('input', { type: 'checkbox' });
       const btn = h('button', { class: 'btn primary block', onclick: go }, 'Start test');
       const closed = !info.is_open;
@@ -206,12 +214,14 @@
         if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em)) return showErr(ERR.BAD_EMAIL);
         if (info.allowed_domain && em.split('@')[1] !== info.allowed_domain) return showErr('Please use your @' + info.allowed_domain + ' email address.');
         if (!name.value.trim()) return showErr(ERR.NAME_REQUIRED);
+        if (info.needs_roll && !roll.value.trim()) return showErr('Please enter your roll number.');
+        if (info.needs_pin && !pin.value.trim()) return showErr('Please enter your PIN.');
         if (info.needs_access_code && !access.value.trim()) return showErr('Please enter the access code.');
         if (!agree.checked) return showErr('Please read the rules and tick the box to continue.');
         requestFs();
         btn.disabled = true; btn.textContent = 'Starting…';
         try {
-          const p = await rpc('ct_start', { p_code: code, p_email: em, p_name: name.value.trim(), p_roll: roll.value.trim(), p_access: access.value.trim(), p_token: null });
+          const p = await rpc('ct_start', { p_code: code, p_email: em, p_name: name.value.trim(), p_roll: roll.value.trim(), p_access: access.value.trim(), p_token: null, p_pin: pin.value.trim() });
           enterExam(code, p, null);
         } catch (e) {
           exitFs();
@@ -219,7 +229,7 @@
           showErr(e.code === 'WRONG_DOMAIN' && info.allowed_domain ? 'Please use your @' + info.allowed_domain + ' email address.' : errText(e));
         }
       }
-      [email, name, roll, access].forEach(i => i.addEventListener('keydown', e => { if (e.key === 'Enter') go(); }));
+      [email, name, roll, access, pin].forEach(i => i.addEventListener('keydown', e => { if (e.key === 'Enter') go(); }));
 
       render(h('div', { class: 'wrap' }, brand(),
         h('div', { class: 'card' }, testSummary(info),
@@ -232,6 +242,7 @@
           h('div', { class: 'grid2' },
             h('label', { class: 'f' }, h('span', null, 'Full name'), name),
             h('label', { class: 'f' }, h('span', null, 'Roll number'), roll)),
+          info.needs_pin ? h('label', { class: 'f' }, h('span', null, 'PIN'), pin) : null,
           info.needs_access_code ? h('label', { class: 'f' }, h('span', null, 'Access code'), access) : null,
           h('label', { class: 'check small' }, agree, h('span', null, 'I have read the rules and will not use any unfair means.')),
           err, btn)));
@@ -640,7 +651,7 @@
       const err = h('div', { class: 'alert hidden' });
       async function go() {
         err.classList.add('hidden');
-        if (p1.value.length < 8) { err.textContent = ERR.PASSWORD_TOO_SHORT; return err.classList.remove('hidden'); }
+        if (p1.value.length < 10) { err.textContent = ERR.PASSWORD_TOO_SHORT; return err.classList.remove('hidden'); }
         if (p1.value !== p2.value) { err.textContent = 'Passwords do not match.'; return err.classList.remove('hidden'); }
         try { await rpc('ct_admin_setup', { p_pass: p1.value }); pass = p1.value; sess.set('ct_admin_pass', pass); list(); }
         catch (e) { err.textContent = errText(e); err.classList.remove('hidden'); }
@@ -648,7 +659,7 @@
       render(shell(h('div', { class: 'card stack', style: 'max-width:440px' },
         h('h1', null, 'Create admin password'),
         h('p', { class: 'muted small' }, 'First-time setup. Only someone with this password can create tests and see results. Do it right away, and don’t share it.'),
-        h('label', { class: 'f' }, h('span', null, 'Password (min 8 characters)'), p1),
+        h('label', { class: 'f' }, h('span', null, 'Password (min 10 characters)'), p1),
         h('label', { class: 'f' }, h('span', null, 'Confirm password'), p2),
         err, h('button', { class: 'btn primary block', onclick: go }, 'Save password'))));
     }
@@ -692,7 +703,7 @@
     }
 
     async function changePassword() {
-      const np = prompt('New admin password (min 8 characters):');
+      const np = prompt('New admin password (min 10 characters):');
       if (np == null) return;
       try { await call('change_password', { new: np }); pass = np; sess.set('ct_admin_pass', np); toast('Password changed'); }
       catch (e) { alert(errText(e)); }
@@ -908,7 +919,7 @@
         T.students
           ? h('div', { class: 'alert ok' }, T.students + ' registered students. Only these emails can log in.')
           : h('div', { class: 'alert info' }, T.allowed_domain ? 'No list uploaded — anyone with an @' + T.allowed_domain + ' email can log in.' : 'No list uploaded and no domain set — anyone with the link (and access code) can log in.'),
-        h('p', { class: 'small muted', style: 'margin:0' }, 'Optional. Upload an Excel/CSV with an Email column (Name and Roll No. columns are used if present). Names from the list are used in results.'),
+        h('p', { class: 'small muted', style: 'margin:0' }, 'Recommended. Upload an Excel/CSV with an Email column. If it has a Roll No. column, students must enter the matching roll number; if it has a PIN column, they must enter that PIN too. This stops anyone logging in with a classmate’s email. Names from the list are used in results.'),
         h('div', { class: 'row' },
           h('button', { class: 'btn primary', onclick: () => fileIn.click() }, T.students ? 'Replace list' : 'Upload student list'),
           T.students ? h('button', { class: 'btn', onclick: async () => {
@@ -922,8 +933,8 @@
         fileIn, listBox), box);
     }
     const studentTable = rows => h('div', { class: 'tscroll' }, h('table', { class: 't' },
-      h('thead', null, h('tr', null, h('th', null, 'Email'), h('th', null, 'Name'), h('th', null, 'Roll'))),
-      h('tbody', null, rows.map(s => h('tr', null, h('td', null, s.email), h('td', null, s.name), h('td', null, s.roll))))));
+      h('thead', null, h('tr', null, h('th', null, 'Email'), h('th', null, 'Name'), h('th', null, 'Roll'), h('th', null, 'PIN'))),
+      h('tbody', null, rows.map(s => h('tr', null, h('td', null, s.email), h('td', null, s.name), h('td', null, s.roll), h('td', null, s.pin ? '••••' : '–'))))));
 
     /* ---- results ---- */
     let R = null, filter = '', auto = true;
@@ -940,6 +951,8 @@
         const sub = at.filter(a => a.submitted_at), prog = at.filter(a => !a.submitted_at);
         const avg = sub.length ? sub.reduce((s, a) => s + Number(a.score || 0), 0) / sub.length : 0;
         const maxScore = (at[0] && at[0].total || countQ()) * Number(T.marks_correct);
+        const sharedIp = {};
+        at.forEach(a => { if (a.start_ip) sharedIp[a.start_ip] = (sharedIp[a.start_ip] || 0) + 1; });
         const q = filter.trim().toLowerCase();
         const rows = at.filter(a => !q || (a.name + ' ' + a.email + ' ' + a.roll).toLowerCase().includes(q));
         const search = h('input', { type: 'text', placeholder: 'Search name, email or roll', value: filter, oninput: e => { filter = e.target.value; paint(); const s = area.querySelector('input'); s.focus(); s.setSelectionRange(s.value.length, s.value.length); } });
@@ -984,7 +997,9 @@
                 h('td', { class: 'muted' }, i + 1),
                 h('td', null, h('b', null, a.name), h('div', { class: 'small muted', style: 'word-break:break-all' }, a.email + (a.roll ? ' · ' + a.roll : '')),
                   h('div', { style: 'margin-top:4px' }, statusPill(a)),
-                  a.switches ? h('div', { class: 'small', style: 'color:var(--bad);font-weight:600;margin-top:3px' }, 'Left window ' + a.switches + '×') : null),
+                  a.switches ? h('div', { class: 'small', style: 'color:var(--bad);font-weight:600;margin-top:3px' }, 'Left window ' + a.switches + '×') : null,
+                  a.start_ip && a.last_ip && a.start_ip !== a.last_ip ? h('div', { class: 'small', style: 'color:var(--warn);font-weight:600;margin-top:3px' }, 'Network changed: ' + a.start_ip + ' → ' + a.last_ip) : null,
+                  a.start_ip ? h('div', { class: 'small muted' }, 'IP ' + a.start_ip + (sharedIp[a.start_ip] > 1 && sharedIp[a.start_ip] <= 5 ? ' · shared with ' + (sharedIp[a.start_ip] - 1) + ' other' + (sharedIp[a.start_ip] > 2 ? 's' : '') : '')) : null),
                 h('td', { class: 'n' }, a.submitted_at ? h('b', null, num(a.score)) : '–', a.submitted_at ? h('div', { class: 'small muted', style: 'white-space:nowrap' }, a.correct + '✓ ' + a.wrong + '✗') : null),
                 h('td', null, act(a))))
                 : h('tr', null, h('td', { colspan: 4, class: 'muted center' }, at.length ? 'No match.' : 'Nobody has started yet.')))))));
@@ -998,13 +1013,14 @@
       load();
     }
 
+    const safeCell = v => (typeof v === 'string' && /^[=+\-@\t\r]/.test(v)) ? "'" + v : v;
     async function exportXlsx() {
       try { await loadXLSX(); } catch (e) { return alert(e.message); }
       const secs = R.sections, topics = [...R.topics].sort();
       const mc = Number(T.marks_correct);
       const reason = { submitted: 'Submitted', time_up: 'Time up', tab_switch_limit: 'Auto-submitted (left window)', ended_by_admin: 'Ended by admin' };
       const totalN = a => a.total || 0;
-      const head = ['Rank', 'Name', 'Email', 'Roll No.', 'Status', 'Score', 'Max Score', 'Percentage', 'Correct', 'Wrong', 'Unattempted', 'Left-window count', 'Started', 'Submitted'];
+      const head = ['Rank', 'Name', 'Email', 'Roll No.', 'Status', 'Score', 'Max Score', 'Percentage', 'Correct', 'Wrong', 'Unattempted', 'Left-window count', 'Started', 'Submitted', 'Start IP', 'Last IP', 'Browser'];
       secs.forEach(s => head.push(s + ' (correct)'));
       const rows = [head];
       const sorted = [...R.attempts].sort((a, b) => (b.submitted_at ? 1 : 0) - (a.submitted_at ? 1 : 0) || Number(b.score || 0) - Number(a.score || 0) || a.name.localeCompare(b.name));
@@ -1016,7 +1032,7 @@
           a.submitted_at ? (reason[a.submit_reason] || 'Submitted') : 'In progress',
           a.submitted_at ? Number(a.score) : '', max, a.submitted_at && max ? Math.round(Number(a.score) / max * 10000) / 100 : '',
           a.correct ?? '', a.wrong ?? '', a.submitted_at ? totalN(a) - a.correct - a.wrong : '',
-          a.switches, fmtDT(a.started_at), fmtDT(a.submitted_at)];
+          a.switches, fmtDT(a.started_at), fmtDT(a.submitted_at), a.start_ip || '', a.last_ip || '', a.start_ua || ''].map(safeCell);
         secs.forEach(s => row.push(a.detail && a.detail.sections && a.detail.sections[s] ? a.detail.sections[s].c : ''));
         rows.push(row);
       });
@@ -1029,7 +1045,7 @@
       topics.forEach(t => thead.push(t + ' (/' + (tn[t] || '') + ')'));
       const trows = [thead];
       sorted.filter(a => a.submitted_at).forEach(a => {
-        const r = [a.name, a.email, a.roll];
+        const r = [a.name, a.email, a.roll].map(safeCell);
         topics.forEach(t => r.push(a.detail && a.detail.topics && a.detail.topics[t] ? a.detail.topics[t].c : 0));
         trows.push(r);
       });

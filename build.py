@@ -16,6 +16,8 @@ html = f"""<!doctype html>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="robots" content="noindex">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src {url}; base-uri 'none'; form-action 'none'; object-src 'none'">
+<meta name="referrer" content="no-referrer">
 <title>CDC Online Test</title>
 <style>
 {css}

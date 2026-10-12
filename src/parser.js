@@ -124,7 +124,7 @@
     const out = new Map(), errors = [];
     for (const name of wb.SheetNames) {
       const rows = rowsOf(wb.Sheets[name]);
-      let hr = -1, ce = -1, cn = -1, cr = -1;
+      let hr = -1, ce = -1, cn = -1, cr = -1, cp = -1;
       for (let r = 0; r < Math.min(rows.length, 15); r++) {
         const h = rows[r].map(norm);
         const e = h.findIndex(x => /e-?mail|mail id/.test(x));
@@ -132,6 +132,7 @@
           hr = r; ce = e;
           cn = h.findIndex((x, j) => j !== e && /name/.test(x) && !/(user|file|father|mother|parent)/.test(x));
           cr = h.findIndex((x, j) => j !== e && /(roll|enrol|enroll|reg|admission|^id$|student id)/.test(x));
+          cp = h.findIndex((x, j) => j !== e && /(^pin$|pin code|passcode|password|secret)/.test(x));
           break;
         }
       }
@@ -142,7 +143,7 @@
         else { const c = row.find(v => emailRe.test(clean(v))); email = c ? clean(c).toLowerCase() : ''; }
         if (!email) continue;
         if (!emailRe.test(email)) { errors.push('Skipped invalid email: ' + email); continue; }
-        out.set(email, { email, name: cn >= 0 ? clean(row[cn]) : '', roll: cr >= 0 ? clean(row[cr]) : '' });
+        out.set(email, { email, name: cn >= 0 ? clean(row[cn]) : '', roll: cr >= 0 ? clean(row[cr]) : '', pin: cp >= 0 ? clean(row[cp]) : '' });
       }
       if (out.size) break;
     }
