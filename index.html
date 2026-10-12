@@ -1,0 +1,1378 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>CDC Online Test</title>
+<style>
+:root{
+  --bg:#f5f6f8; --card:#ffffff; --ink:#16181d; --muted:#5d6472; --line:#e2e5ea;
+  --brand:#1f4e9c; --brand-ink:#ffffff; --brand-soft:#e8eef9;
+  --ok:#1a7f4b; --ok-soft:#e3f4ea; --bad:#c0362c; --bad-soft:#fbe8e6;
+  --warn:#a35c00; --warn-soft:#fdf1df; --mark:#6a3fb5; --mark-soft:#efe8fb;
+  --radius:12px; --shadow:0 1px 2px rgba(16,24,40,.06),0 2px 8px rgba(16,24,40,.05);
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --bg:#0f1115; --card:#181b21; --ink:#e8eaee; --muted:#9aa2b1; --line:#2a2f38;
+    --brand:#6c9cf0; --brand-ink:#0b1220; --brand-soft:#1b2740;
+    --ok:#4cc38a; --ok-soft:#14291f; --bad:#f07067; --bad-soft:#331816;
+    --warn:#f0a94a; --warn-soft:#2f2412; --mark:#b08cf0; --mark-soft:#261d38;
+    --shadow:none;
+  }
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-text-size-adjust:100%}
+button,input,select,textarea{font:inherit;color:inherit}
+a{color:var(--brand)}
+.wrap{max-width:720px;margin:0 auto;padding:16px}
+.wide{max-width:1100px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:18px;box-shadow:var(--shadow);margin-bottom:14px}
+h1{font-size:22px;line-height:1.25;margin:0 0 6px}
+h2{font-size:17px;margin:0 0 10px}
+h3{font-size:15px;margin:0 0 8px}
+.muted{color:var(--muted)}
+.small{font-size:13px}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.spread{justify-content:space-between}
+.grow{flex:1 1 auto}
+.stack>*+*{margin-top:12px}
+label.f{display:block}
+label.f>span{display:block;font-size:13px;font-weight:600;margin-bottom:4px}
+input[type=text],input[type=email],input[type=password],input[type=number],textarea,select{
+  width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:10px;background:var(--bg);outline:none}
+input:focus,textarea:focus,select:focus{border-color:var(--brand);box-shadow:0 0 0 3px var(--brand-soft)}
+textarea{min-height:90px;resize:vertical}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media (max-width:520px){.grid2{grid-template-columns:1fr}}
+.check{display:flex;gap:10px;align-items:flex-start;cursor:pointer}
+.check input{margin-top:4px;width:18px;height:18px;flex:none}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:10px 16px;border-radius:10px;border:1px solid var(--line);background:var(--card);cursor:pointer;font-weight:600;min-height:42px;text-decoration:none;color:var(--ink)}
+.btn:hover{border-color:var(--brand)}
+.btn.primary{background:var(--brand);border-color:var(--brand);color:var(--brand-ink)}
+.btn.danger{color:var(--bad);border-color:var(--bad-soft)}
+.btn.danger.solid{background:var(--bad);color:#fff;border-color:var(--bad)}
+.btn.block{width:100%}
+.btn.sm{min-height:32px;padding:5px 10px;font-size:13px;border-radius:8px}
+.btn:disabled{opacity:.55;cursor:not-allowed}
+.pill{display:inline-block;padding:2px 9px;border-radius:999px;font-size:12px;font-weight:600;background:var(--brand-soft);color:var(--brand)}
+.pill.ok{background:var(--ok-soft);color:var(--ok)}
+.pill.bad{background:var(--bad-soft);color:var(--bad)}
+.pill.warn{background:var(--warn-soft);color:var(--warn)}
+.pill.gray{background:var(--bg);color:var(--muted);border:1px solid var(--line)}
+.alert{padding:11px 13px;border-radius:10px;background:var(--bad-soft);color:var(--bad);font-weight:500}
+.alert.info{background:var(--brand-soft);color:var(--brand)}
+.alert.ok{background:var(--ok-soft);color:var(--ok)}
+.alert.warn{background:var(--warn-soft);color:var(--warn)}
+.hidden{display:none!important}
+.center{text-align:center}
+.brandbar{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+.logo{width:36px;height:36px;border-radius:9px;background:var(--brand);color:var(--brand-ink);display:grid;place-items:center;font-weight:800;font-size:13px;flex:none}
+ul.rules{margin:6px 0 0;padding-left:20px}
+ul.rules li{margin:4px 0}
+
+/* ---------- exam ---------- */
+body.exam{user-select:none;-webkit-user-select:none}
+.topbar{position:sticky;top:0;z-index:20;background:var(--card);border-bottom:1px solid var(--line)}
+.topbar .in{max-width:1100px;margin:0 auto;padding:8px 12px;display:flex;align-items:center;gap:10px}
+.topbar .t{flex:1;min-width:0}
+.topbar .t b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:14px}
+.timer{font-variant-numeric:tabular-nums;font-weight:800;font-size:18px;padding:4px 10px;border-radius:8px;background:var(--brand-soft);color:var(--brand)}
+.timer.low{background:var(--bad-soft);color:var(--bad);animation:pulse 1s infinite}
+@keyframes pulse{50%{opacity:.6}}
+.sync{width:9px;height:9px;border-radius:50%;background:var(--ok);flex:none}
+.sync.pending{background:var(--warn)}.sync.off{background:var(--bad)}
+.tabs{display:flex;gap:6px;overflow-x:auto;padding:8px 12px;max-width:1100px;margin:0 auto;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tab{white-space:nowrap;padding:6px 12px;border-radius:999px;border:1px solid var(--line);background:var(--card);cursor:pointer;font-weight:600;font-size:13px}
+.tab.on{background:var(--brand);color:var(--brand-ink);border-color:var(--brand)}
+.exam-grid{max-width:1100px;margin:0 auto;padding:0 12px 96px;display:grid;grid-template-columns:1fr 290px;gap:14px;align-items:start}
+@media (max-width:860px){.exam-grid{grid-template-columns:1fr}.side{display:none}}
+.qhead{display:flex;justify-content:space-between;gap:8px;align-items:center;margin-bottom:10px}
+.qtext{font-size:16.5px;line-height:1.55;white-space:pre-wrap;word-break:break-word;margin-bottom:14px}
+.opt{display:flex;gap:12px;align-items:flex-start;padding:12px 14px;border:1.5px solid var(--line);border-radius:10px;margin-bottom:9px;cursor:pointer;background:var(--card);white-space:pre-wrap;word-break:break-word}
+.opt:hover{border-color:var(--brand)}
+.opt.sel{border-color:var(--brand);background:var(--brand-soft)}
+.opt .k{flex:none;width:26px;height:26px;border-radius:50%;border:1.5px solid var(--line);display:grid;place-items:center;font-weight:700;font-size:13px;background:var(--card)}
+.opt.sel .k{background:var(--brand);color:var(--brand-ink);border-color:var(--brand)}
+.bottombar{position:fixed;left:0;right:0;bottom:0;z-index:20;background:var(--card);border-top:1px solid var(--line)}
+.bottombar .in{max-width:1100px;margin:0 auto;padding:10px 12px;display:flex;gap:8px;align-items:center}
+.palette{display:grid;grid-template-columns:repeat(auto-fill,minmax(38px,1fr));gap:6px}
+.pq{height:38px;border-radius:8px;border:1px solid var(--line);background:var(--card);font-weight:700;font-size:13px;cursor:pointer;position:relative}
+.pq.v{background:var(--bad-soft);color:var(--bad);border-color:transparent}
+.pq.a{background:var(--ok);color:#fff;border-color:var(--ok)}
+.pq.m{background:var(--mark);color:#fff;border-color:var(--mark)}
+.pq.a.m::after{content:"";position:absolute;right:3px;top:3px;width:7px;height:7px;border-radius:50%;background:var(--ok);border:1.5px solid #fff}
+.pq.cur{outline:2.5px solid var(--brand);outline-offset:1px}
+.legend{display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:12px;margin-top:12px}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:3px;vertical-align:-2px;margin-right:5px;border:1px solid var(--line)}
+.overlay{position:fixed;inset:0;z-index:50;background:rgba(10,12,16,.55);display:flex;align-items:flex-end;justify-content:center;padding:0}
+@media (min-width:640px){.overlay{align-items:center;padding:16px}}
+.sheet{background:var(--card);width:100%;max-width:520px;max-height:88vh;overflow:auto;border-radius:16px 16px 0 0;padding:18px}
+@media (min-width:640px){.sheet{border-radius:16px}}
+table.t{width:100%;border-collapse:collapse;font-size:13.5px}
+table.t th,table.t td{padding:8px 8px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+table.t th{font-size:12px;color:var(--muted);font-weight:600;white-space:nowrap}
+table.t td.n,table.t th.n{text-align:right;font-variant-numeric:tabular-nums}
+.tscroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.big{font-size:40px;font-weight:800;line-height:1.1}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.stat{background:var(--bg);border-radius:10px;padding:10px;text-align:center}
+.stat b{display:block;font-size:22px}
+.toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:10px;z-index:60;font-weight:600;max-width:90vw}
+
+/* ---------- admin ---------- */
+.atabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin:4px 0 14px;overflow-x:auto}
+.atab{padding:10px 14px;border:none;background:none;cursor:pointer;font-weight:600;color:var(--muted);border-bottom:2.5px solid transparent;white-space:nowrap}
+.atab.on{color:var(--brand);border-bottom-color:var(--brand)}
+.tlist .card{cursor:pointer}
+.qprev{border-top:1px solid var(--line);padding:10px 0;font-size:13.5px}
+.qprev ol{margin:6px 0 0;padding-left:22px}
+.qprev li.c{color:var(--ok);font-weight:700}
+.copybox{display:flex;gap:6px}
+.copybox input{font-size:13px}
+details>summary{cursor:pointer;font-weight:600;padding:4px 0}
+.pill{white-space:nowrap}
+.exam-grid{padding-top:12px}
+.bottombar .btn{white-space:nowrap;padding:10px 12px}
+@media (max-width:520px){.qhead .secname{display:none}.bottombar .in{gap:6px}.bottombar .btn{padding:10px 9px}}
+@media (max-width:520px){.atab{padding:10px 9px}.wrap{padding:12px}.card{padding:14px}}
+
+</style>
+</head>
+<body>
+<div id="app"></div>
+<noscript>Please enable JavaScript to take this test.</noscript>
+<script>
+/* ======== SETTINGS — edit these lines only ======== */
+window.CT_CONFIG = {
+  supabaseUrl: "PASTE_SUPABASE_URL_HERE",
+  supabaseKey: "PASTE_SUPABASE_KEY_HERE",
+  orgName: "CDC · Acropolis Institute",
+  logoText: "CDC",
+  defaultDomain: ""
+};
+/* ================================================== */
+</script>
+<script>
+/* Excel/CSV parsing for question banks and student lists. Needs XLSX (SheetJS). */
+(function (root) {
+  const LETTERS = ['a', 'b', 'c', 'd', 'e', 'f'];
+  const norm = s => String(s == null ? '' : s).replace(/ /g, ' ').trim().toLowerCase().replace(/\s+/g, ' ');
+  const clean = s => String(s == null ? '' : s).replace(/ /g, ' ').trim();
+  const rowsOf = ws => root.XLSX.utils.sheet_to_json(ws, { header: 1, defval: '', raw: false, blankrows: false });
+
+  function findCol(h, regs, skip) {
+    for (const re of regs) {
+      const i = h.findIndex((x, j) => re.test(x) && !(skip && skip.includes(j)));
+      if (i >= 0) return i;
+    }
+    return -1;
+  }
+  const RE = {
+    qno: [/^(question|ques|q)\.? ?(no|number|num|#)\.?$/, /^(s\.? ?no|sr\.? ?no|sl\.? ?no|no\.?|#|qno|q\.no\.?)$/],
+    topic: [/topic/, /subject/, /category/, /^section$/],
+    question: [/^questions?$/, /^question (text|statement)$/, /^(ques|q)$/, /^question\b(?!.*\b(no|number|num|#)\b)/],
+    correctOpt: [/^correct (option|opt\.?|choice)$/, /^(answer|ans) (option|key)$/, /^(answer|ans|key|answer key)$/, /^correct$/, /^right (option|answer)$/],
+    correctText: [/^correct answer$/, /^answer text$/],
+  };
+  const optRe = L => [new RegExp('^(option|opt\\.?|choice) ?\\(?' + L + '\\)?$'), new RegExp('^\\(?' + L + '\\)?$')];
+
+  function headerInfo(row) {
+    const h = row.map(norm);
+    const qno = findCol(h, RE.qno);
+    const question = findCol(h, RE.question, [qno]);
+    const opts = [];
+    for (const L of LETTERS) { const i = findCol(h, optRe(L)); if (i < 0) break; opts.push(i); }
+    return {
+      h, qno, question, opts,
+      topic: findCol(h, RE.topic),
+      correctOpt: findCol(h, RE.correctOpt),
+      correctText: findCol(h, RE.correctText),
+    };
+  }
+
+  function letterIndex(v) {
+    const m = /^(?:option|opt\.?)?\s*\(?([a-f])\)?\.?$/i.exec(clean(v));
+    return m ? m[1].toLowerCase().charCodeAt(0) - 97 : -1;
+  }
+  const sameText = (a, b) => norm(a).replace(/[.\s]+$/, '') === norm(b).replace(/[.\s]+$/, '');
+
+  function resolveCorrect(optVal, textVal, options) {
+    let i = letterIndex(optVal);
+    if (i >= 0 && i < options.length) return i;
+    if (clean(textVal)) { i = options.findIndex(o => sameText(o, textVal)); if (i >= 0) return i; }
+    if (clean(optVal)) {
+      i = options.findIndex(o => sameText(o, optVal)); if (i >= 0) return i;
+      if (/^[1-6]$/.test(clean(optVal)) && +clean(optVal) <= options.length) return +clean(optVal) - 1;
+    }
+    return -1;
+  }
+
+  const cleanTopic = t => clean(t).replace(/^\d+\s*[.)\-:]\s*/, '').replace(/\s*\(\s*%\s*\)\s*$/, '').trim();
+
+  /* Returns {questions:[{topic,text,options,correct}], errors:[], sheet, keySheet} */
+  function parseQuestions(wb) {
+    let qs = null;
+    for (const name of wb.SheetNames) {
+      const rows = rowsOf(wb.Sheets[name]);
+      for (let r = 0; r < Math.min(rows.length, 15); r++) {
+        const info = headerInfo(rows[r]);
+        if (info.question >= 0 && info.opts.length >= 2) { qs = { name, rows, r, info }; break; }
+      }
+      if (qs) break;
+    }
+    if (!qs) return { questions: [], errors: ['Could not find a sheet with "Question" and "Option A / Option B…" columns.'] };
+
+    const { info } = qs;
+    // Answer key: in the same sheet, or in another sheet keyed by question number.
+    let key = null, keySheet = null;
+    if (info.correctOpt < 0 && info.correctText < 0) {
+      for (const name of wb.SheetNames) {
+        if (name === qs.name) continue;
+        const rows = rowsOf(wb.Sheets[name]);
+        for (let r = 0; r < Math.min(rows.length, 15); r++) {
+          const ki = headerInfo(rows[r]);
+          if (ki.qno >= 0 && (ki.correctOpt >= 0 || ki.correctText >= 0)) {
+            key = new Map();
+            for (const row of rows.slice(r + 1)) {
+              const k = norm(row[ki.qno]);
+              if (k) key.set(k, { opt: ki.correctOpt >= 0 ? row[ki.correctOpt] : '', text: ki.correctText >= 0 ? row[ki.correctText] : '' });
+            }
+            keySheet = name;
+            break;
+          }
+        }
+        if (key) break;
+      }
+    }
+
+    const questions = [], errors = [];
+    if (info.correctOpt < 0 && info.correctText < 0 && !key)
+      errors.push('No answer column found. Add a "Correct Option" column (A/B/C/D) or an "Answer Key" sheet.');
+
+    let n = 0;
+    for (const row of qs.rows.slice(qs.r + 1)) {
+      const text = clean(row[info.question]);
+      if (!text) continue;
+      n++;
+      const label = info.qno >= 0 && clean(row[info.qno]) ? 'Q' + clean(row[info.qno]) : 'Row ' + n;
+      let options = info.opts.map(i => clean(row[i]));
+      while (options.length && !options[options.length - 1]) options.pop();
+      if (options.length < 2 || options.some(o => !o)) { errors.push(label + ': needs at least 2 options with no blanks.'); continue; }
+      let optVal = '', textVal = '';
+      if (info.correctOpt >= 0 || info.correctText >= 0) {
+        optVal = info.correctOpt >= 0 ? row[info.correctOpt] : '';
+        textVal = info.correctText >= 0 ? row[info.correctText] : '';
+      } else if (key) {
+        const k = key.get(norm(row[info.qno]));
+        if (k) { optVal = k.opt; textVal = k.text; }
+      }
+      const correct = resolveCorrect(optVal, textVal, options);
+      if (correct < 0) { errors.push(label + ': correct answer missing or not one of the options.'); continue; }
+      questions.push({ topic: info.topic >= 0 ? cleanTopic(row[info.topic]) : '', text, options, correct });
+    }
+    return { questions, errors, sheet: qs.name, keySheet };
+  }
+
+  /* Returns {students:[{email,name,roll}], errors:[]} */
+  function parseStudents(wb) {
+    const emailRe = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
+    const out = new Map(), errors = [];
+    for (const name of wb.SheetNames) {
+      const rows = rowsOf(wb.Sheets[name]);
+      let hr = -1, ce = -1, cn = -1, cr = -1;
+      for (let r = 0; r < Math.min(rows.length, 15); r++) {
+        const h = rows[r].map(norm);
+        const e = h.findIndex(x => /e-?mail|mail id/.test(x));
+        if (e >= 0) {
+          hr = r; ce = e;
+          cn = h.findIndex((x, j) => j !== e && /name/.test(x) && !/(user|file|father|mother|parent)/.test(x));
+          cr = h.findIndex((x, j) => j !== e && /(roll|enrol|enroll|reg|admission|^id$|student id)/.test(x));
+          break;
+        }
+      }
+      const body = hr >= 0 ? rows.slice(hr + 1) : rows;
+      for (const row of body) {
+        let email = '';
+        if (ce >= 0) email = clean(row[ce]).toLowerCase();
+        else { const c = row.find(v => emailRe.test(clean(v))); email = c ? clean(c).toLowerCase() : ''; }
+        if (!email) continue;
+        if (!emailRe.test(email)) { errors.push('Skipped invalid email: ' + email); continue; }
+        out.set(email, { email, name: cn >= 0 ? clean(row[cn]) : '', roll: cr >= 0 ? clean(row[cr]) : '' });
+      }
+      if (out.size) break;
+    }
+    return { students: [...out.values()], errors };
+  }
+
+  root.CTParser = { parseQuestions, parseStudents, cleanTopic };
+})(typeof window !== 'undefined' ? window : globalThis);
+
+</script>
+<script>
+(function () {
+  'use strict';
+  const CFG = window.CT_CONFIG || {};
+  const $app = document.getElementById('app');
+  const XLSX_SRC = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+
+  /* ================= helpers ================= */
+  function h(tag, attrs, ...kids) {
+    const el = document.createElement(tag);
+    if (attrs) for (const [k, v] of Object.entries(attrs)) {
+      if (v == null || v === false) continue;
+      if (k === 'class') el.className = v;
+      else if (k.startsWith('on') && typeof v === 'function') el.addEventListener(k.slice(2), v);
+      else if (k === 'style') el.style.cssText = v;
+      else if (['value', 'checked', 'disabled', 'selected', 'open'].includes(k)) el[k] = v;
+      else el.setAttribute(k, v === true ? '' : v);
+    }
+    for (const c of kids.flat(9)) if (c != null && c !== false) el.append(c.nodeType ? c : String(c));
+    return el;
+  }
+  const add = (parent, ...kids) => { for (const c of kids.flat(9)) if (c != null && c !== false) parent.append(c.nodeType ? c : String(c)); return parent; };
+  const render = (node, keepScroll) => { $app.replaceChildren(node); if (!keepScroll) window.scrollTo(0, 0); };
+  const sleep = ms => new Promise(r => setTimeout(r, ms));
+  const store = {
+    get(k) { try { return JSON.parse(localStorage.getItem(k) || 'null'); } catch { return null; } },
+    set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} },
+    del(k) { try { localStorage.removeItem(k); } catch {} },
+  };
+  const sess = {
+    get(k) { try { return sessionStorage.getItem(k); } catch { return null; } },
+    set(k, v) { try { sessionStorage.setItem(k, v); } catch {} },
+    del(k) { try { sessionStorage.removeItem(k); } catch {} },
+  };
+  let toastT;
+  function toast(msg) {
+    document.querySelectorAll('.toast').forEach(t => t.remove());
+    const t = h('div', { class: 'toast' }, msg);
+    document.body.append(t);
+    clearTimeout(toastT); toastT = setTimeout(() => t.remove(), 2600);
+  }
+  function modal(content, opts = {}) {
+    const ov = h('div', { class: 'overlay', onclick: e => { if (e.target === ov && opts.dismiss !== false) close(); } },
+      h('div', { class: 'sheet' }, content));
+    function close() { ov.remove(); opts.onclose && opts.onclose(); }
+    document.body.append(ov);
+    return { close, el: ov };
+  }
+  const fmtDT = s => s ? new Date(s).toLocaleString('en-IN', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }) : '';
+  const fmtClock = ms => {
+    ms = Math.max(0, ms); const t = Math.floor(ms / 1000);
+    const hh = Math.floor(t / 3600), mm = Math.floor(t % 3600 / 60), ss = t % 60;
+    return (hh ? hh + ':' + String(mm).padStart(2, '0') : String(mm).padStart(2, '0')) + ':' + String(ss).padStart(2, '0');
+  };
+  const num = v => (v == null || v === '') ? '' : (Math.round(Number(v) * 100) / 100);
+  const brand = (sub) => h('div', { class: 'brandbar' },
+    h('div', { class: 'logo' }, CFG.logoText || 'CDC'),
+    h('div', null, h('b', null, CFG.orgName || 'Online Test'), sub ? h('div', { class: 'small muted' }, sub) : null));
+
+  /* ================= API ================= */
+  const ERR = {
+    TEST_NOT_FOUND: 'This test link or code is not valid.',
+    BAD_EMAIL: 'Please enter a valid email address.',
+    ALREADY_SUBMITTED: 'This email has already submitted the test. Only one attempt is allowed.',
+    IN_PROGRESS_ELSEWHERE: 'This email has already started the test on another device or browser. Ask the invigilator to unlock it, then try again.',
+    TEST_CLOSED: 'The test is not open yet. Wait for the invigilator, then try again.',
+    BAD_ACCESS_CODE: 'Wrong access code. Check the code given by the invigilator.',
+    NOT_REGISTERED: 'This email is not on the list for this test. Use your registered email or contact the invigilator.',
+    WRONG_DOMAIN: 'Please use your institute email address.',
+    NAME_REQUIRED: 'Please enter your full name.',
+    NO_QUESTIONS: 'This test has no questions yet.',
+    NO_ATTEMPT: 'Your attempt was reset by the invigilator. Please log in again.',
+    BAD_PASSWORD: 'Wrong password.',
+    NO_ADMIN: 'Admin password is not set up yet.',
+    PASSWORD_TOO_SHORT: 'Password must be at least 8 characters.',
+    ALREADY_CONFIGURED: 'An admin password already exists. Please log in.',
+    TITLE_REQUIRED: 'Please enter a test title.',
+    NETWORK: 'No internet connection. Check your network and try again.',
+  };
+  function errText(e) {
+    const c = e && e.code;
+    if (c && ERR[c]) return ERR[c];
+    if (c && /^BAD_QUESTION_\d+$/.test(c)) return 'Question ' + c.split('_').pop() + ' in the file is invalid.';
+    return (e && e.message) || 'Something went wrong.';
+  }
+  async function rpc(fn, args) {
+    const headers = { apikey: CFG.supabaseKey, 'Content-Type': 'application/json' };
+    if (!String(CFG.supabaseKey).startsWith('sb_')) headers.Authorization = 'Bearer ' + CFG.supabaseKey;
+    let r;
+    try {
+      r = await fetch(CFG.supabaseUrl.replace(/\/+$/, '') + '/rest/v1/rpc/' + fn, {
+        method: 'POST', headers, body: JSON.stringify(args || {}), cache: 'no-store',
+      });
+    } catch (_) {
+      const e = new Error(ERR.NETWORK); e.code = 'NETWORK'; e.network = true; throw e;
+    }
+    const txt = await r.text();
+    let j = null; try { j = txt ? JSON.parse(txt) : null; } catch { j = txt; }
+    if (!r.ok) {
+      const msg = (j && j.message) || (typeof j === 'string' ? j : '') || ('Server error ' + r.status);
+      const e = new Error(msg); e.code = msg; e.status = r.status;
+      if (r.status >= 500 || r.status === 429) e.network = true;
+      throw e;
+    }
+    return j;
+  }
+  function loadXLSX() {
+    if (window.XLSX) return Promise.resolve();
+    return new Promise((res, rej) => {
+      const s = document.createElement('script');
+      s.src = XLSX_SRC; s.onload = res;
+      s.onerror = () => rej(new Error('Could not load the Excel reader. Check your internet connection.'));
+      document.head.append(s);
+    });
+  }
+  const baseUrl = () => location.origin + location.pathname;
+
+  /* ================= router ================= */
+  function route() {
+    if (!CFG.supabaseUrl || /PASTE|YOUR_/.test(CFG.supabaseUrl + CFG.supabaseKey)) {
+      render(h('div', { class: 'wrap' }, brand(), h('div', { class: 'card' },
+        h('h1', null, 'Almost ready'),
+        h('p', null, 'Open config.js and paste your Supabase project URL and anon/publishable key.'))));
+      return;
+    }
+    if (location.hash.startsWith('#admin')) return Admin.start();
+    const code = (new URLSearchParams(location.search).get('t') || '').trim().toUpperCase();
+    Student.start(code);
+  }
+
+  /* ================================================================
+     STUDENT
+     ================================================================ */
+  const Student = (() => {
+    let S = null;
+    const key = code => 'ct_attempt_' + code;
+
+    async function start(code) {
+      if (!code) return codeEntry();
+      render(h('div', { class: 'wrap' }, brand(), h('div', { class: 'card center muted' }, 'Loading test…')));
+      let info;
+      try { info = await rpc('ct_test_info', { p_code: code }); }
+      catch (e) { return fatal(errText(e), () => start(code)); }
+      if (!info) return fatal(ERR.TEST_NOT_FOUND, null, true);
+      const saved = store.get(key(code));
+      if (saved && saved.token) return resumeScreen(code, info, saved);
+      login(code, info);
+    }
+
+    function codeEntry() {
+      const inp = h('input', { type: 'text', placeholder: 'e.g. 7F3A2C', autocapitalize: 'characters', maxlength: 12 });
+      const go = () => { const v = inp.value.trim(); if (v) location.search = '?t=' + encodeURIComponent(v.toUpperCase()); };
+      inp.addEventListener('keydown', e => { if (e.key === 'Enter') go(); });
+      render(h('div', { class: 'wrap' }, brand(),
+        h('div', { class: 'card stack' }, h('h1', null, 'Join a test'),
+          h('label', { class: 'f' }, h('span', null, 'Test code'), inp),
+          h('button', { class: 'btn primary block', onclick: go }, 'Continue')),
+        h('p', { class: 'center small' }, h('a', { href: '#admin' }, 'Admin login'))));
+    }
+
+    function fatal(msg, retry, back) {
+      render(h('div', { class: 'wrap' }, brand(), h('div', { class: 'card stack' },
+        h('div', { class: 'alert' }, msg),
+        h('div', { class: 'row' },
+          retry ? h('button', { class: 'btn primary', onclick: retry }, 'Try again') : null,
+          back ? h('a', { class: 'btn', href: baseUrl() }, 'Enter another code') : null))));
+    }
+
+    function testSummary(info) {
+      const mw = Number(info.marks_wrong);
+      return h('div', null,
+        h('h1', null, info.title),
+        h('div', { class: 'row small', style: 'margin:6px 0 2px' },
+          h('span', { class: 'pill' }, info.duration_min + ' minutes'),
+          h('span', { class: 'pill' }, info.question_count + ' questions'),
+          h('span', { class: 'pill' }, '+' + num(info.marks_correct) + ' per correct'),
+          h('span', { class: mw ? 'pill bad' : 'pill gray' }, mw ? '−' + num(mw) + ' per wrong' : 'No negative marking')),
+        info.sections && info.sections.length > 1 ? h('div', { class: 'small muted', style: 'margin-top:8px' },
+          info.sections.map(s => s.name + ' (' + s.count + ')').join(' · ')) : null);
+    }
+
+    function rulesList(info) {
+      const max = info.max_switches;
+      return h('ul', { class: 'rules small' },
+        h('li', null, 'The timer starts as soon as you begin and cannot be paused. The test is submitted automatically when time is up.'),
+        h('li', null, 'Your answers are saved automatically. If your browser closes, reopen the same link on the same device to continue.'),
+        h('li', null, max > 0
+          ? 'Do not switch tabs, apps or windows. Each switch is recorded; after ' + max + ' warning' + (max > 1 ? 's' : '') + ' your test is submitted automatically.'
+          : 'Do not switch tabs, apps or windows. Every switch is recorded and reported.'),
+        h('li', null, 'Copy, paste and right-click are disabled. Only one attempt is allowed per email.'));
+    }
+
+    function login(code, info, notice) {
+      const err = h('div', { class: 'alert hidden' });
+      const email = h('input', { type: 'email', autocomplete: 'email', inputmode: 'email', placeholder: info.allowed_domain ? 'yourname@' + info.allowed_domain : 'you@example.com' });
+      const name = h('input', { type: 'text', autocomplete: 'name', placeholder: 'As per college records' });
+      const roll = h('input', { type: 'text', placeholder: 'Enrollment / roll number' });
+      const access = h('input', { type: 'text', autocapitalize: 'characters', placeholder: 'Given by invigilator' });
+      const agree = h('input', { type: 'checkbox' });
+      const btn = h('button', { class: 'btn primary block', onclick: go }, 'Start test');
+      const closed = !info.is_open;
+
+      async function go() {
+        err.classList.add('hidden');
+        const em = email.value.trim().toLowerCase();
+        const showErr = m => { err.textContent = m; err.classList.remove('hidden'); };
+        if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em)) return showErr(ERR.BAD_EMAIL);
+        if (info.allowed_domain && em.split('@')[1] !== info.allowed_domain) return showErr('Please use your @' + info.allowed_domain + ' email address.');
+        if (!name.value.trim()) return showErr(ERR.NAME_REQUIRED);
+        if (info.needs_access_code && !access.value.trim()) return showErr('Please enter the access code.');
+        if (!agree.checked) return showErr('Please read the rules and tick the box to continue.');
+        requestFs();
+        btn.disabled = true; btn.textContent = 'Starting…';
+        try {
+          const p = await rpc('ct_start', { p_code: code, p_email: em, p_name: name.value.trim(), p_roll: roll.value.trim(), p_access: access.value.trim(), p_token: null });
+          enterExam(code, p, null);
+        } catch (e) {
+          exitFs();
+          btn.disabled = false; btn.textContent = 'Start test';
+          showErr(e.code === 'WRONG_DOMAIN' && info.allowed_domain ? 'Please use your @' + info.allowed_domain + ' email address.' : errText(e));
+        }
+      }
+      [email, name, roll, access].forEach(i => i.addEventListener('keydown', e => { if (e.key === 'Enter') go(); }));
+
+      render(h('div', { class: 'wrap' }, brand(),
+        h('div', { class: 'card' }, testSummary(info),
+          info.instructions ? h('div', { class: 'alert info small', style: 'margin-top:12px;white-space:pre-wrap' }, info.instructions) : null,
+          h('h3', { style: 'margin-top:14px' }, 'Rules'), rulesList(info)),
+        h('div', { class: 'card stack' },
+          notice ? h('div', { class: 'alert warn' }, notice) : null,
+          closed ? h('div', { class: 'alert warn' }, 'The test has not been opened yet. Fill in your details and press Start once the invigilator opens it.') : null,
+          h('label', { class: 'f' }, h('span', null, 'Email'), email),
+          h('div', { class: 'grid2' },
+            h('label', { class: 'f' }, h('span', null, 'Full name'), name),
+            h('label', { class: 'f' }, h('span', null, 'Roll number'), roll)),
+          info.needs_access_code ? h('label', { class: 'f' }, h('span', null, 'Access code'), access) : null,
+          h('label', { class: 'check small' }, agree, h('span', null, 'I have read the rules and will not use any unfair means.')),
+          err, btn)));
+    }
+
+    function resumeScreen(code, info, saved) {
+      const err = h('div', { class: 'alert hidden' });
+      const btn = h('button', { class: 'btn primary block', onclick: go }, 'Continue my test');
+      async function go() {
+        requestFs();
+        btn.disabled = true; btn.textContent = 'Loading…';
+        try {
+          const p = await rpc('ct_start', { p_code: code, p_email: saved.email, p_token: saved.token });
+          enterExam(code, p, saved);
+        } catch (e) {
+          exitFs();
+          if (e.network) { btn.disabled = false; btn.textContent = 'Continue my test'; err.textContent = errText(e); err.classList.remove('hidden'); return; }
+          store.del(key(code));
+          login(code, info, errText(e));
+        }
+      }
+      render(h('div', { class: 'wrap' }, brand(),
+        h('div', { class: 'card stack' }, testSummary(info),
+          h('div', { class: 'alert info' }, 'A test in progress was found on this device for ' + saved.email + '. Your timer has kept running.'),
+          err, btn,
+          h('button', { class: 'btn block', onclick: () => {
+            if (confirm('Start fresh with a different email? The test in progress for ' + saved.email + ' will no longer open on this device.')) { store.del(key(code)); login(code, info); }
+          } }, 'This is not me'))));
+    }
+
+    function requestFs() {
+      const el = document.documentElement;
+      try { const p = (el.requestFullscreen || el.webkitRequestFullscreen || function () {}).call(el); if (p && p.catch) p.catch(() => {}); } catch {}
+    }
+    function exitFs() {
+      try { if (document.fullscreenElement) document.exitFullscreen().catch(() => {}); } catch {}
+    }
+
+    /* ---------------- exam ---------------- */
+    function enterExam(code, p, saved) {
+      const flat = [];
+      p.sections.forEach((s, si) => s.questions.forEach((q, qi) => flat.push({ si, qi, q })));
+      const same = saved && saved.token === p.token;
+      S = {
+        code, p, flat, token: p.token, email: p.email,
+        answers: Object.assign({}, p.answers || {}, same ? saved.answers : {}),
+        marked: new Set(same ? saved.marked || [] : []),
+        visited: new Set(same ? saved.visited || [] : []),
+        switches: Math.max(p.switches || 0, same ? saved.switches || 0 : 0),
+        cur: same && saved.cur < flat.length ? saved.cur : 0,
+        deadline: Date.parse(p.deadline), offset: Date.parse(p.server_now) - Date.now(),
+        dirty: same, ver: 0, lastSync: 0, submitted: false, submitting: false, lastViol: 0, wasFull: !!document.fullscreenElement,
+        timers: [],
+      };
+      S.visited.add(flat[S.cur].q.id);
+      persist();
+      document.body.classList.add('exam');
+      buildExam();
+      S.timers.push(setInterval(tick, 500), setInterval(() => sync(), 20000));
+      tick();
+      if (S.dirty) sync(true);
+      bindGuards();
+    }
+
+    function persist() {
+      if (!S || S.submitted) return;
+      store.set(key(S.code), { token: S.token, email: S.email, answers: S.answers, marked: [...S.marked], visited: [...S.visited], switches: S.switches, cur: S.cur });
+    }
+
+    let E = {};
+    function buildExam() {
+      const p = S.p;
+      E.timer = h('div', { class: 'timer' }, '--:--');
+      E.sync = h('div', { class: 'sync', title: 'Saved' });
+      E.tabs = h('div', { class: 'tabs' });
+      E.main = h('div', { class: 'card' });
+      E.palette = h('div', { class: 'palette' });
+      E.palTitle = h('h3', null, '');
+      E.counts = h('div', { class: 'small muted', style: 'margin-top:10px' });
+      E.mark = h('button', { class: 'btn', onclick: toggleMark }, 'Mark');
+      E.prev = h('button', { class: 'btn', onclick: () => go(S.cur - 1) }, '‹ Prev');
+      E.next = h('button', { class: 'btn primary grow', onclick: () => go(S.cur + 1) }, 'Save & Next ›');
+      const legend = h('div', { class: 'legend' },
+        h('span', null, h('i', { style: 'background:var(--ok)' }), 'Answered'),
+        h('span', null, h('i', { style: 'background:var(--bad-soft)' }), 'Not answered'),
+        h('span', null, h('i', { style: 'background:var(--mark)' }), 'Marked for review'),
+        h('span', null, h('i', null), 'Not visited'));
+      const side = h('div', { class: 'side' }, h('div', { class: 'card', style: 'position:sticky;top:120px' }, E.palTitle, E.palette, legend, E.counts));
+      render(h('div', null,
+        h('div', { class: 'topbar' },
+          h('div', { class: 'in' },
+            h('div', { class: 't' }, h('b', null, p.test.title), h('span', { class: 'small muted' }, p.name)),
+            E.sync, E.timer,
+            h('button', { class: 'btn primary sm', onclick: confirmSubmit }, 'Submit')),
+          p.sections.length > 1 ? E.tabs : null),
+        h('div', { class: 'exam-grid' }, h('div', null, E.main), side),
+        h('div', { class: 'bottombar' }, h('div', { class: 'in' },
+          E.prev,
+          h('button', { class: 'btn', onclick: openPaletteSheet, title: 'All questions' }, '☰'),
+          E.mark, E.next))));
+      drawQ();
+    }
+
+    function sectionRange(si) {
+      let a = -1, b = -1;
+      S.flat.forEach((f, i) => { if (f.si === si) { if (a < 0) a = i; b = i; } });
+      return [a, b];
+    }
+    function status(qid) {
+      const a = S.answers[qid] != null, m = S.marked.has(qid), v = S.visited.has(qid);
+      return (a ? 'a ' : '') + (m ? 'm ' : '') + (!a && !m && v ? 'v' : '');
+    }
+
+    function drawQ() {
+      const f = S.flat[S.cur], q = f.q, sec = S.p.sections[f.si];
+      const [a, b] = sectionRange(f.si);
+      const qn = S.cur - a + 1;
+      E.tabs.replaceChildren(...S.p.sections.map((s, si) => {
+        const [x] = sectionRange(si);
+        return h('button', { class: 'tab' + (si === f.si ? ' on' : ''), onclick: () => go(x) }, s.name);
+      }));
+      const sel = S.answers[q.id];
+      E.main.replaceChildren(
+        h('div', { class: 'qhead' },
+          h('div', null, h('b', null, 'Question ' + qn), h('span', { class: 'muted' }, ' of ' + (b - a + 1)),
+            S.p.sections.length > 1 ? h('span', { class: 'muted small secname' }, ' · ' + sec.name) : null),
+          q.topic ? h('span', { class: 'pill gray' }, q.topic) : null),
+        h('div', { class: 'qtext' }, q.text),
+        h('div', null, q.options.map((o, k) => h('div', {
+          class: 'opt' + (sel === o.i ? ' sel' : ''), role: 'radio', tabindex: 0, 'aria-checked': sel === o.i ? 'true' : 'false',
+          onclick: () => choose(q.id, o.i),
+          onkeydown: e => { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); choose(q.id, o.i); } },
+        }, h('span', { class: 'k' }, String.fromCharCode(65 + k)), h('span', null, o.t)))),
+        h('div', { class: 'row', style: 'margin-top:6px' },
+          h('button', { class: 'btn sm', onclick: () => { delete S.answers[q.id]; changed(); }, disabled: sel == null }, 'Clear response')));
+      E.mark.textContent = S.marked.has(q.id) ? '★ Marked' : '☆ Mark';
+      E.mark.style.color = S.marked.has(q.id) ? 'var(--mark)' : '';
+      E.prev.disabled = S.cur === 0;
+      E.next.textContent = S.cur === S.flat.length - 1 ? 'Save' : 'Save & Next ›';
+      E.palTitle.textContent = sec.name;
+      E.palette.replaceChildren(...paletteButtons(f.si));
+      const answered = Object.keys(S.answers).length;
+      E.counts.textContent = answered + ' of ' + S.flat.length + ' answered · ' + S.marked.size + ' marked';
+    }
+
+    function paletteButtons(si, after) {
+      const [a, b] = sectionRange(si), out = [];
+      for (let i = a; i <= b; i++) {
+        const qid = S.flat[i].q.id;
+        out.push(h('button', { class: 'pq ' + status(qid) + (i === S.cur ? ' cur' : ''), onclick: () => { go(i); after && after(); } }, String(i - a + 1)));
+      }
+      return out;
+    }
+
+    function openPaletteSheet() {
+      let m;
+      const body = h('div', null,
+        h('div', { class: 'row spread' }, h('h2', null, 'Questions'), h('button', { class: 'btn sm', onclick: () => m.close() }, 'Close')),
+        S.p.sections.map((s, si) => h('div', { style: 'margin-bottom:14px' },
+          h('h3', null, s.name), h('div', { class: 'palette' }, paletteButtons(si, () => m.close())))),
+        h('div', { class: 'legend' },
+          h('span', null, h('i', { style: 'background:var(--ok)' }), 'Answered'),
+          h('span', null, h('i', { style: 'background:var(--bad-soft)' }), 'Not answered'),
+          h('span', null, h('i', { style: 'background:var(--mark)' }), 'Marked'),
+          h('span', null, h('i', null), 'Not visited')));
+      m = modal(body);
+    }
+
+    function go(i) {
+      if (i < 0 || i >= S.flat.length) return;
+      S.cur = i; S.visited.add(S.flat[i].q.id);
+      persist(); drawQ(); window.scrollTo(0, 0);
+    }
+    function choose(qid, i) { S.answers[qid] = i; changed(); }
+    function toggleMark() {
+      const qid = S.flat[S.cur].q.id;
+      S.marked.has(qid) ? S.marked.delete(qid) : S.marked.add(qid);
+      persist(); drawQ();
+    }
+    function changed() {
+      S.dirty = true; S.ver++; persist(); drawQ(); setSync('pending');
+      clearTimeout(S.deb); S.deb = setTimeout(() => sync(), 2000);
+    }
+    function setSync(st) {
+      if (!E.sync) return;
+      E.sync.className = 'sync' + (st === 'ok' ? '' : st === 'pending' ? ' pending' : ' off');
+      E.sync.title = st === 'ok' ? 'All answers saved' : st === 'pending' ? 'Saving…' : 'Offline — answers kept on this device, will retry';
+    }
+
+    async function sync(force) {
+      if (!S || S.submitted || S.submitting || S.syncing) return;
+      if (!S.dirty && !force && Date.now() - S.lastSync < 55000) return;
+      S.syncing = true;
+      const v = S.ver;
+      try {
+        const r = await rpc('ct_save', { p_token: S.token, p_answers: S.answers, p_switches: S.switches });
+        S.lastSync = Date.now();
+        if (S.ver === v) S.dirty = false;
+        if (r.server_now) S.offset = Date.parse(r.server_now) - Date.now();
+        if (r.deadline) S.deadline = Date.parse(r.deadline);
+        setSync(S.dirty ? 'pending' : 'ok');
+        if (r.submitted) { S.syncing = false; return submit(r.reason || 'submitted', true); }
+      } catch (e) {
+        if (e.code === 'NO_ATTEMPT') { S.syncing = false; return resetByAdmin(); }
+        setSync('off');
+      } finally {
+        if (S) S.syncing = false;
+        if (S && S.dirty && !S.submitted) { clearTimeout(S.deb); S.deb = setTimeout(() => sync(), 5000); }
+      }
+    }
+
+    function tick() {
+      if (!S || S.submitted) return;
+      const rem = S.deadline - (Date.now() + S.offset);
+      E.timer.textContent = fmtClock(rem);
+      E.timer.classList.toggle('low', rem < 5 * 60000);
+      if (rem <= 0 && !S.submitting) submit('time_up', true);
+    }
+
+    /* ---- leaving-the-window detection ---- */
+    let guardsBound = false;
+    function bindGuards() {
+      if (guardsBound) return; guardsBound = true;
+      document.addEventListener('visibilitychange', () => { if (document.hidden) violation(); });
+      window.addEventListener('blur', () => {
+        if (!S || S.submitted) return;
+        clearTimeout(S.blurT);
+        S.blurT = setTimeout(() => { if (!document.hasFocus()) violation(); }, 1500);
+      });
+      window.addEventListener('focus', () => S && clearTimeout(S.blurT));
+      const fsEv = () => {
+        if (!S || S.submitted) return;
+        if (document.fullscreenElement || document.webkitFullscreenElement) { S.wasFull = true; return; }
+        if (S.wasFull) violation();
+      };
+      document.addEventListener('fullscreenchange', fsEv);
+      document.addEventListener('webkitfullscreenchange', fsEv);
+      ['copy', 'cut', 'paste', 'contextmenu', 'selectstart', 'dragstart'].forEach(ev =>
+        document.addEventListener(ev, e => { if (inExam()) e.preventDefault(); }));
+      document.addEventListener('keydown', e => {
+        if (!inExam()) return;
+        const k = (e.key || '').toLowerCase();
+        if (e.key === 'F12' || ((e.ctrlKey || e.metaKey) && ['c', 'v', 'x', 'a', 'p', 's', 'u'].includes(k)) ||
+          ((e.ctrlKey || e.metaKey) && e.shiftKey && ['i', 'j', 'c'].includes(k))) e.preventDefault();
+      });
+      window.addEventListener('beforeunload', e => { if (inExam()) { S.unloading = Date.now(); persist(); e.preventDefault(); e.returnValue = ''; } });
+      window.addEventListener('online', () => sync(true));
+    }
+    const inExam = () => !!(S && !S.submitted && document.body.classList.contains('exam'));
+
+    function violation() {
+      if (!inExam() || S.submitting) return;
+      const now = Date.now();
+      if (S.unloading && now - S.unloading < 1500) return; // reload / close, not a tab switch
+      if (now - S.lastViol < 2500) return;
+      S.lastViol = now;
+      S.switches++; S.dirty = true; S.ver++;
+      persist();
+      sync(true);
+      const max = S.p.test.max_switches;
+      if (max > 0 && S.switches > max) return submit('tab_switch_limit', true);
+      showWarning(max);
+    }
+    function showWarning(max) {
+      document.querySelectorAll('.overlay.warnov').forEach(x => x.remove());
+      const left = max > 0 ? max - S.switches : null;
+      let m;
+      const body = h('div', { class: 'stack center' },
+        h('div', { style: 'font-size:40px' }, '⚠️'),
+        h('h2', null, 'You left the test window'),
+        h('p', null, max > 0
+          ? 'Warning ' + S.switches + ' of ' + max + '. ' + (left === 0 ? 'One more time and your test will be submitted automatically.' : 'After ' + max + ' warnings your test is submitted automatically.')
+          : 'This has been recorded (' + S.switches + ' time' + (S.switches > 1 ? 's' : '') + ') and will be reported to the invigilator.'),
+        h('button', { class: 'btn primary block', onclick: () => { requestFs(); m.close(); } }, 'Return to the test'));
+      m = modal(body, { dismiss: false });
+      m.el.classList.add('warnov');
+    }
+
+    function confirmSubmit() {
+      const rows = S.p.sections.map((s, si) => {
+        const qs = S.flat.filter(f => f.si === si);
+        const ans = qs.filter(f => S.answers[f.q.id] != null).length;
+        const mk = qs.filter(f => S.marked.has(f.q.id)).length;
+        return h('tr', null, h('td', null, s.name), h('td', { class: 'n' }, ans), h('td', { class: 'n' }, qs.length - ans), h('td', { class: 'n' }, mk));
+      });
+      const un = S.flat.length - Object.keys(S.answers).length;
+      let m;
+      m = modal(h('div', { class: 'stack' },
+        h('h2', null, 'Submit test?'),
+        h('table', { class: 't' },
+          h('thead', null, h('tr', null, h('th', null, 'Section'), h('th', { class: 'n' }, 'Answered'), h('th', { class: 'n' }, 'Left'), h('th', { class: 'n' }, 'Marked'))),
+          h('tbody', null, rows)),
+        un ? h('div', { class: 'alert warn' }, un + ' question' + (un > 1 ? 's are' : ' is') + ' still unanswered.') : null,
+        h('p', { class: 'small muted' }, 'After submitting you cannot change any answer.'),
+        h('div', { class: 'row' },
+          h('button', { class: 'btn grow', onclick: () => m.close() }, 'Go back'),
+          h('button', { class: 'btn primary grow', onclick: () => { m.close(); submit('submitted'); } }, 'Submit now'))));
+    }
+
+    async function submit(reason, auto) {
+      if (!S || S.submitted || S.submitting) return;
+      S.submitting = true;
+      clearTimeout(S.deb);
+      persist();
+      document.querySelectorAll('.overlay').forEach(x => x.remove());
+      const msg = h('p', { class: 'muted' }, 'Please wait, do not close this page.');
+      const ov = modal(h('div', { class: 'stack center' },
+        h('h2', null, auto && reason === 'time_up' ? 'Time is up — submitting…' : auto && reason === 'tab_switch_limit' ? 'Submitting your test…' : 'Submitting…'),
+        msg), { dismiss: false });
+      for (let n = 0; ; n++) {
+        try {
+          const r = await rpc('ct_submit', { p_token: S.token, p_answers: S.answers, p_switches: S.switches, p_reason: reason });
+          ov.close();
+          return finished(r);
+        } catch (e) {
+          if (e.code === 'NO_ATTEMPT') { ov.close(); S.submitting = false; return resetByAdmin(); }
+          msg.textContent = 'No connection. Your answers are safe on this device — retrying automatically… (attempt ' + (n + 1) + ')';
+          await sleep(Math.min(15000, 2500 * (n + 1)));
+        }
+      }
+    }
+
+    function stopExam() {
+      S.submitted = true;
+      S.timers.forEach(clearInterval);
+      clearTimeout(S.deb); clearTimeout(S.blurT);
+      document.body.classList.remove('exam');
+      store.del(key(S.code));
+      exitFs();
+    }
+    function resetByAdmin() {
+      const code = S.code; stopExam();
+      fatal(ERR.NO_ATTEMPT, () => { location.href = baseUrl() + '?t=' + code; });
+    }
+
+    function finished(r) {
+      const p = S.p; stopExam();
+      const why = {
+        time_up: 'Time was up, so your test was submitted automatically.',
+        tab_switch_limit: 'Your test was submitted automatically because you left the test window too many times.',
+        ended_by_admin: 'The invigilator ended the test.',
+      }[r.reason];
+      const res = r.result;
+      let resultBlock = null;
+      if (res) {
+        const un = res.total - res.correct - res.wrong;
+        const secs = res.detail && res.detail.sections ? Object.entries(res.detail.sections) : [];
+        resultBlock = h('div', { class: 'card stack' },
+          h('div', { class: 'center' }, h('div', { class: 'muted small' }, 'Your score'),
+            h('div', { class: 'big' }, num(res.score), h('span', { class: 'muted', style: 'font-size:20px' }, ' / ' + num(res.max_score)))),
+          h('div', { class: 'stats' },
+            h('div', { class: 'stat' }, h('b', { style: 'color:var(--ok)' }, res.correct), 'Correct'),
+            h('div', { class: 'stat' }, h('b', { style: 'color:var(--bad)' }, res.wrong), 'Wrong'),
+            h('div', { class: 'stat' }, h('b', null, un), 'Skipped')),
+          secs.length > 1 ? h('table', { class: 't' },
+            h('thead', null, h('tr', null, h('th', null, 'Section'), h('th', { class: 'n' }, 'Correct'), h('th', { class: 'n' }, 'Out of'))),
+            h('tbody', null, secs.map(([n, x]) => h('tr', null, h('td', null, n), h('td', { class: 'n' }, x.c), h('td', { class: 'n' }, x.n))))) : null);
+      }
+      render(h('div', { class: 'wrap' }, brand(),
+        h('div', { class: 'card stack center' },
+          h('div', { style: 'font-size:44px' }, '✅'),
+          h('h1', null, 'Test submitted'),
+          h('p', null, 'Thank you, ' + p.name + '. Your responses for “' + p.test.title + '” have been recorded.'),
+          why ? h('div', { class: 'alert warn' }, why) : null,
+          h('p', { class: 'small muted' }, 'You can close this page now.')),
+        resultBlock));
+    }
+
+    return { start };
+  })();
+
+  /* ================================================================
+     ADMIN
+     ================================================================ */
+  const Admin = (() => {
+    let pass = sess.get('ct_admin_pass');
+    let T = null; // current test
+    let tab = 'settings';
+    let autoT = null;
+
+    const call = async (action, args) => {
+      try { return await rpc('ct_admin', { p_pass: pass, p_action: action, p_args: args || {} }); }
+      catch (e) { if (e.code === 'BAD_PASSWORD') { logout(); } throw e; }
+    };
+    function logout() { pass = null; sess.del('ct_admin_pass'); clearInterval(autoT); loginScreen(); }
+    const shell = (...kids) => h('div', { class: 'wrap wide' }, brand('Admin panel'), ...kids);
+
+    async function start() {
+      document.title = 'Admin · ' + (CFG.orgName || 'Online Test');
+      render(shell(h('div', { class: 'card muted center' }, 'Loading…')));
+      try {
+        const st = await rpc('ct_admin_status', {});
+        if (!st.configured) return setupScreen();
+        if (pass) return list();
+        loginScreen();
+      } catch (e) {
+        render(shell(h('div', { class: 'card stack' }, h('div', { class: 'alert' }, errText(e)),
+          h('p', { class: 'small muted' }, 'If this is the first run, check that setup.sql was run in Supabase and the URL/key in config.js are correct.'),
+          h('button', { class: 'btn', onclick: start }, 'Try again'))));
+      }
+    }
+
+    function setupScreen() {
+      const p1 = h('input', { type: 'password', autocomplete: 'new-password' });
+      const p2 = h('input', { type: 'password', autocomplete: 'new-password' });
+      const err = h('div', { class: 'alert hidden' });
+      async function go() {
+        err.classList.add('hidden');
+        if (p1.value.length < 8) { err.textContent = ERR.PASSWORD_TOO_SHORT; return err.classList.remove('hidden'); }
+        if (p1.value !== p2.value) { err.textContent = 'Passwords do not match.'; return err.classList.remove('hidden'); }
+        try { await rpc('ct_admin_setup', { p_pass: p1.value }); pass = p1.value; sess.set('ct_admin_pass', pass); list(); }
+        catch (e) { err.textContent = errText(e); err.classList.remove('hidden'); }
+      }
+      render(shell(h('div', { class: 'card stack', style: 'max-width:440px' },
+        h('h1', null, 'Create admin password'),
+        h('p', { class: 'muted small' }, 'First-time setup. Only someone with this password can create tests and see results. Do it right away, and don’t share it.'),
+        h('label', { class: 'f' }, h('span', null, 'Password (min 8 characters)'), p1),
+        h('label', { class: 'f' }, h('span', null, 'Confirm password'), p2),
+        err, h('button', { class: 'btn primary block', onclick: go }, 'Save password'))));
+    }
+
+    function loginScreen() {
+      const p = h('input', { type: 'password', autocomplete: 'current-password' });
+      const err = h('div', { class: 'alert hidden' });
+      const btn = h('button', { class: 'btn primary block', onclick: go }, 'Log in');
+      async function go() {
+        err.classList.add('hidden'); btn.disabled = true;
+        pass = p.value;
+        try { await rpc('ct_admin', { p_pass: pass, p_action: 'tests', p_args: {} }); sess.set('ct_admin_pass', pass); list(); }
+        catch (e) { pass = null; btn.disabled = false; err.textContent = errText(e); err.classList.remove('hidden'); }
+      }
+      p.addEventListener('keydown', e => { if (e.key === 'Enter') go(); });
+      render(shell(h('div', { class: 'card stack', style: 'max-width:440px' },
+        h('h1', null, 'Admin login'),
+        h('label', { class: 'f' }, h('span', null, 'Password'), p), err, btn)));
+      setTimeout(() => p.focus(), 50);
+    }
+
+    async function list() {
+      clearInterval(autoT); T = null;
+      render(shell(h('div', { class: 'card muted center' }, 'Loading tests…')));
+      let tests;
+      try { tests = await call('tests'); } catch (e) { if (pass) render(shell(h('div', { class: 'alert' }, errText(e)))); return; }
+      render(shell(
+        h('div', { class: 'row spread', style: 'margin-bottom:12px' },
+          h('h1', null, 'Tests'),
+          h('div', { class: 'row' },
+            h('button', { class: 'btn sm', onclick: changePassword }, 'Change password'),
+            h('button', { class: 'btn sm', onclick: logout }, 'Log out'))),
+        h('button', { class: 'btn primary block', style: 'margin-bottom:14px', onclick: () => openTest(null) }, '+ New test'),
+        tests.length ? h('div', { class: 'tlist' }, tests.map(t => h('div', { class: 'card', onclick: () => openTest(t.id, t.attempts ? 'results' : 'questions') },
+          h('div', { class: 'row spread' }, h('b', null, t.title),
+            h('span', { class: 'pill ' + (t.is_open ? 'ok' : 'gray') }, t.is_open ? 'Open' : 'Closed')),
+          h('div', { class: 'small muted', style: 'margin-top:4px' },
+            'Code ' + t.code + ' · ' + t.questions + ' questions · ' + t.duration_min + ' min · ' +
+            t.submitted + '/' + t.attempts + ' submitted'))))
+          : h('div', { class: 'card muted center' }, 'No tests yet. Create your first one.')));
+    }
+
+    async function changePassword() {
+      const np = prompt('New admin password (min 8 characters):');
+      if (np == null) return;
+      try { await call('change_password', { new: np }); pass = np; sess.set('ct_admin_pass', np); toast('Password changed'); }
+      catch (e) { alert(errText(e)); }
+    }
+
+    async function openTest(id, which) {
+      clearInterval(autoT);
+      tab = which || (id ? (tab || 'questions') : 'settings');
+      if (!id) { T = null; tab = 'settings'; return drawTest(); }
+      render(shell(h('div', { class: 'card muted center' }, 'Loading…')), true);
+      try { T = await call('get_test', { id }); } catch (e) { return render(shell(h('div', { class: 'alert' }, errText(e)))); }
+      drawTest();
+    }
+    const reload = async (which) => openTest(T.id, which || tab);
+
+    function drawTest() {
+      clearInterval(autoT);
+      const isNew = !T;
+      const link = T ? baseUrl() + '?t=' + T.code : '';
+      const tabs = isNew ? [] : [['settings', 'Settings'], ['questions', 'Questions (' + countQ() + ')'], ['students', 'Students'], ['results', 'Results']];
+      const body = h('div');
+      render(shell(
+        h('div', { class: 'row', style: 'margin-bottom:8px' }, h('button', { class: 'btn sm', onclick: list }, '‹ All tests')),
+        h('div', { class: 'card stack' },
+          h('div', { class: 'row spread' },
+            h('div', null, h('h1', null, isNew ? 'New test' : T.title),
+              T ? h('div', { class: 'small muted' }, 'Test code ' + T.code) : null),
+            T ? h('button', { class: 'btn ' + (T.is_open ? 'danger' : 'primary'), onclick: toggleOpen }, T.is_open ? 'Close test' : 'Open test') : null),
+          T ? h('div', null,
+            h('div', { class: 'small', style: 'margin-bottom:4px' },
+              h('span', { class: 'pill ' + (T.is_open ? 'ok' : 'gray') }, T.is_open ? 'Open — students can start' : 'Closed — students cannot start'),
+              ' ', countQ() ? null : h('span', { class: 'pill warn' }, 'No questions yet')),
+            h('div', { class: 'copybox' },
+              h('input', { type: 'text', value: link, readonly: true, onclick: e => e.target.select() }),
+              h('button', { class: 'btn sm', onclick: () => copy(link) }, 'Copy link'),
+              navigator.share ? h('button', { class: 'btn sm', onclick: () => navigator.share({ title: T.title, url: link }).catch(() => {}) }, 'Share') : null)) : null),
+        tabs.length ? h('div', { class: 'atabs' }, tabs.map(([k, l]) => h('button', { class: 'atab' + (tab === k ? ' on' : ''), onclick: () => { tab = k; drawTest(); } }, l))) : null,
+        body), true);
+      ({ settings: drawSettings, questions: drawQuestions, students: drawStudents, results: drawResults })[tab](body);
+    }
+    const countQ = () => T ? T.sections.reduce((n, s) => n + s.questions.length, 0) : 0;
+    function copy(text) {
+      (navigator.clipboard ? navigator.clipboard.writeText(text) : Promise.reject()).then(() => toast('Link copied'), () => prompt('Copy this link:', text));
+    }
+    async function toggleOpen() {
+      if (!T.is_open && !countQ()) return alert('Upload questions before opening the test.');
+      try { await call('set_open', { id: T.id, is_open: !T.is_open }); T.is_open = !T.is_open; toast(T.is_open ? 'Test is open' : 'Test is closed'); drawTest(); }
+      catch (e) { alert(errText(e)); }
+    }
+
+    /* ---- settings ---- */
+    function drawSettings(body) {
+      const v = T || { title: '', instructions: '', duration_min: 60, marks_correct: 1, marks_wrong: 0, max_switches: 3, access_code: '', allowed_domain: CFG.defaultDomain || '', shuffle_questions: true, shuffle_options: true, show_result: false };
+      const f = {
+        title: h('input', { type: 'text', value: v.title, placeholder: 'e.g. CH Test — October 2026' }),
+        instructions: h('textarea', { value: v.instructions, placeholder: 'Optional message shown before the test starts' }),
+        duration_min: h('input', { type: 'number', min: 1, value: v.duration_min, inputmode: 'numeric' }),
+        marks_correct: h('input', { type: 'number', step: '0.25', value: v.marks_correct, inputmode: 'decimal' }),
+        marks_wrong: h('input', { type: 'number', step: '0.25', min: 0, value: v.marks_wrong, inputmode: 'decimal' }),
+        max_switches: h('input', { type: 'number', min: 0, value: v.max_switches, inputmode: 'numeric' }),
+        access_code: h('input', { type: 'text', value: v.access_code, placeholder: 'Optional, e.g. CDC42', autocapitalize: 'characters' }),
+        allowed_domain: h('input', { type: 'text', value: v.allowed_domain, placeholder: 'Optional, e.g. acropolis.in' }),
+        shuffle_questions: h('input', { type: 'checkbox', checked: !!v.shuffle_questions }),
+        shuffle_options: h('input', { type: 'checkbox', checked: !!v.shuffle_options }),
+        show_result: h('input', { type: 'checkbox', checked: !!v.show_result }),
+      };
+      const err = h('div', { class: 'alert hidden' });
+      const btn = h('button', { class: 'btn primary block', onclick: save }, T ? 'Save settings' : 'Create test');
+      async function save() {
+        err.classList.add('hidden'); btn.disabled = true;
+        const args = { id: T ? T.id : null };
+        for (const [k, el] of Object.entries(f)) args[k] = el.type === 'checkbox' ? el.checked : el.value;
+        try {
+          const wasNew = !T;
+          T = await call('save_test', args);
+          toast(wasNew ? 'Test created — now upload questions' : 'Saved');
+          tab = wasNew ? 'questions' : 'settings';
+          drawTest();
+        } catch (e) { btn.disabled = false; err.textContent = errText(e); err.classList.remove('hidden'); }
+      }
+      const field = (label, el, hint) => h('label', { class: 'f' }, h('span', null, label), el, hint ? h('div', { class: 'small muted', style: 'margin-top:3px' }, hint) : null);
+      const chk = (el, label, hint) => h('label', { class: 'check' }, el, h('span', null, h('b', null, label), hint ? h('div', { class: 'small muted' }, hint) : null));
+      add(body, h('div', { class: 'card stack' },
+        field('Test title', f.title),
+        field('Instructions for students', f.instructions),
+        h('div', { class: 'grid2' },
+          field('Duration (minutes)', f.duration_min),
+          field('Leave-window warnings', f.max_switches, 'Auto-submit after this many. 0 = only record.'),
+          field('Marks per correct answer', f.marks_correct),
+          field('Negative marks per wrong', f.marks_wrong, '0 = no negative marking')),
+        h('div', { class: 'grid2' },
+          field('Access code', f.access_code, 'Announce it in the lab when you start.'),
+          field('Allowed email domain', f.allowed_domain, 'Only these emails can log in. Ignored if you upload a student list.')),
+        chk(f.shuffle_questions, 'Shuffle question order', 'Each student gets a different order within each section.'),
+        chk(f.shuffle_options, 'Shuffle options', 'A/B/C/D order differs per student.'),
+        chk(f.show_result, 'Show score to students after submitting'),
+        err, btn,
+        T ? h('details', null, h('summary', { class: 'small muted' }, 'Danger zone'),
+          h('button', { class: 'btn danger', style: 'margin-top:8px', onclick: delTest }, 'Delete this test and all its results')) : null));
+    }
+    async function delTest() {
+      if (prompt('Type DELETE to permanently delete “' + T.title + '” with all questions and results.') !== 'DELETE') return;
+      try { await call('delete_test', { id: T.id }); toast('Deleted'); list(); } catch (e) { alert(errText(e)); }
+    }
+
+    /* ---- questions ---- */
+    function drawQuestions(body) {
+      const fileIn = h('input', { type: 'file', accept: '.xlsx,.xls,.csv,.ods', class: 'hidden', onchange: e => { const f = e.target.files[0]; e.target.value = ''; if (f) previewUpload(f, body); } });
+      add(body, 
+        T.attempts ? h('div', { class: 'alert warn', style: 'margin-bottom:12px' }, T.attempts + ' student(s) have already started. Changing questions now affects their papers.') : null,
+        h('div', { class: 'card stack' },
+          h('h2', null, 'Add a section from Excel'),
+          h('p', { class: 'small muted', style: 'margin:0' }, 'One file per section. Needed columns: Question, Option A, Option B (C, D… optional) and the answer as a “Correct Option” column (A/B/C/D) — or in a separate “Answer Key” sheet matched by Question No. A “Topic” column gives topic-wise results.'),
+          h('div', { class: 'row' },
+            h('button', { class: 'btn primary', onclick: () => fileIn.click() }, 'Upload Excel / CSV'),
+            h('button', { class: 'btn', onclick: downloadTemplate }, 'Download template')),
+          fileIn),
+        h('div', { id: 'preview' }),
+        T.sections.length ? T.sections.map(s => sectionCard(s)) : h('div', { class: 'card muted center' }, 'No sections yet.'));
+    }
+
+    function sectionCard(s) {
+      const topics = [...new Set(s.questions.map(q => q.topic).filter(Boolean))];
+      return h('div', { class: 'card' },
+        h('div', { class: 'row spread' },
+          h('div', null, h('h2', { style: 'margin:0' }, s.name), h('div', { class: 'small muted' }, s.questions.length + ' questions' + (topics.length ? ' · ' + topics.join(', ') : ''))),
+          h('div', { class: 'row' },
+            h('button', { class: 'btn sm', onclick: async () => {
+              const n = prompt('Section name:', s.name); if (!n || !n.trim()) return;
+              try { await call('rename_section', { id: s.id, name: n }); reload(); } catch (e) { alert(errText(e)); }
+            } }, 'Rename'),
+            h('button', { class: 'btn sm danger', onclick: async () => {
+              if (!confirm('Delete section “' + s.name + '” and its ' + s.questions.length + ' questions?')) return;
+              try { await call('delete_section', { id: s.id }); reload(); } catch (e) { alert(errText(e)); }
+            } }, 'Delete'))),
+        h('details', { style: 'margin-top:8px' }, h('summary', { class: 'small' }, 'View questions with answers'),
+          s.questions.map((q, i) => qPreview(q, i))));
+    }
+    const qPreview = (q, i) => h('div', { class: 'qprev' },
+      h('div', { style: 'white-space:pre-wrap' }, h('b', null, (i + 1) + '. '), q.text, q.topic ? h('span', { class: 'muted small' }, '  [' + q.topic + ']') : null),
+      h('ol', { type: 'A' }, q.options.map((o, k) => h('li', { class: k === q.correct ? 'c' : '' }, o, k === q.correct ? ' ✓' : ''))));
+
+    async function previewUpload(file, body) {
+      const box = body.querySelector('#preview');
+      box.replaceChildren(h('div', { class: 'card muted' }, 'Reading ' + file.name + '…'));
+      let r;
+      try {
+        await loadXLSX();
+        r = CTParser.parseQuestions(XLSX.read(await file.arrayBuffer()));
+      } catch (e) { return box.replaceChildren(h('div', { class: 'card alert' }, e.message || 'Could not read that file.')); }
+      const defName = 'Section ' + String.fromCharCode(65 + T.sections.length);
+      const nameIn = h('input', { type: 'text', value: defName });
+      const topics = [...new Set(r.questions.map(q => q.topic).filter(Boolean))];
+      const btn = h('button', { class: 'btn primary', disabled: !r.questions.length, onclick: save }, 'Save ' + r.questions.length + ' questions');
+      async function save() {
+        btn.disabled = true; btn.textContent = 'Saving…';
+        try {
+          await call('add_section', { test_id: T.id, name: nameIn.value, questions: r.questions });
+          toast('Section saved'); reload('questions');
+        } catch (e) { btn.disabled = false; btn.textContent = 'Save ' + r.questions.length + ' questions'; alert(errText(e)); }
+      }
+      box.replaceChildren(h('div', { class: 'card stack', style: 'border-color:var(--brand)' },
+        h('h2', null, 'Preview: ' + file.name),
+        h('div', { class: r.questions.length ? 'alert ok' : 'alert' },
+          'Found ' + r.questions.length + ' question' + (r.questions.length === 1 ? '' : 's') +
+          (r.sheet ? ' in sheet “' + r.sheet + '”' : '') + (r.keySheet ? ', answers from “' + r.keySheet + '”' : '') + '.'),
+        r.errors.length ? h('div', { class: 'alert warn small' }, h('b', null, r.errors.length + ' problem(s) — these rows will be skipped:'),
+          h('ul', { style: 'margin:6px 0 0;padding-left:18px' }, r.errors.slice(0, 12).map(e => h('li', null, e)), r.errors.length > 12 ? h('li', null, '…and ' + (r.errors.length - 12) + ' more') : null)) : null,
+        topics.length ? h('div', { class: 'small muted' }, 'Topics: ' + topics.join(', ')) : null,
+        h('label', { class: 'f' }, h('span', null, 'Section name'), nameIn),
+        r.questions.length ? h('details', null, h('summary', { class: 'small' }, 'Check questions and answers'), r.questions.map((q, i) => qPreview(q, i))) : null,
+        h('div', { class: 'row' }, btn, h('button', { class: 'btn', onclick: () => box.replaceChildren() }, 'Cancel'))));
+      box.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    async function downloadTemplate() {
+      try { await loadXLSX(); } catch (e) { return alert(e.message); }
+      const ws = XLSX.utils.aoa_to_sheet([
+        ['Question No.', 'Topic', 'Question', 'Option A', 'Option B', 'Option C', 'Option D', 'Correct Option'],
+        [1, 'Numerical Ability', 'What is 15% of 240?', '24', '30', '36', '42', 'C'],
+        [2, 'Data Structures', 'Which data structure follows LIFO?', 'Queue', 'Stack', 'Heap', 'Graph', 'B'],
+      ]);
+      ws['!cols'] = [{ wch: 12 }, { wch: 20 }, { wch: 50 }, { wch: 16 }, { wch: 16 }, { wch: 16 }, { wch: 16 }, { wch: 14 }];
+      const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, 'Questions');
+      XLSX.writeFile(wb, 'question-template.xlsx');
+    }
+
+    /* ---- students ---- */
+    function drawStudents(body) {
+      const fileIn = h('input', { type: 'file', accept: '.xlsx,.xls,.csv,.ods', class: 'hidden', onchange: e => { const f = e.target.files[0]; e.target.value = ''; if (f) upload(f); } });
+      const box = h('div');
+      const listBox = h('div');
+      async function upload(file) {
+        box.replaceChildren(h('div', { class: 'card muted' }, 'Reading…'));
+        let r;
+        try { await loadXLSX(); r = CTParser.parseStudents(XLSX.read(await file.arrayBuffer())); }
+        catch (e) { return box.replaceChildren(h('div', { class: 'card alert' }, e.message)); }
+        const btn = h('button', { class: 'btn primary', disabled: !r.students.length, onclick: async () => {
+          btn.disabled = true;
+          try { const x = await call('set_students', { test_id: T.id, students: r.students }); toast(x.count + ' students saved'); reload('students'); }
+          catch (e) { btn.disabled = false; alert(errText(e)); }
+        } }, 'Save list of ' + r.students.length);
+        box.replaceChildren(h('div', { class: 'card stack', style: 'border-color:var(--brand)' },
+          h('div', { class: r.students.length ? 'alert ok' : 'alert' }, 'Found ' + r.students.length + ' student email' + (r.students.length === 1 ? '' : 's') + '.'),
+          r.errors.length ? h('div', { class: 'alert warn small' }, r.errors.slice(0, 8).join(' · ')) : null,
+          r.students.length ? studentTable(r.students.slice(0, 5)) : null,
+          r.students.length > 5 ? h('div', { class: 'small muted' }, '…and ' + (r.students.length - 5) + ' more') : null,
+          h('div', { class: 'small muted' }, 'This replaces any existing list.'),
+          h('div', { class: 'row' }, btn, h('button', { class: 'btn', onclick: () => box.replaceChildren() }, 'Cancel'))));
+      }
+      add(body, h('div', { class: 'card stack' },
+        h('h2', null, 'Who can take this test'),
+        T.students
+          ? h('div', { class: 'alert ok' }, T.students + ' registered students. Only these emails can log in.')
+          : h('div', { class: 'alert info' }, T.allowed_domain ? 'No list uploaded — anyone with an @' + T.allowed_domain + ' email can log in.' : 'No list uploaded and no domain set — anyone with the link (and access code) can log in.'),
+        h('p', { class: 'small muted', style: 'margin:0' }, 'Optional. Upload an Excel/CSV with an Email column (Name and Roll No. columns are used if present). Names from the list are used in results.'),
+        h('div', { class: 'row' },
+          h('button', { class: 'btn primary', onclick: () => fileIn.click() }, T.students ? 'Replace list' : 'Upload student list'),
+          T.students ? h('button', { class: 'btn', onclick: async () => {
+            listBox.replaceChildren(h('div', { class: 'muted small' }, 'Loading…'));
+            try { listBox.replaceChildren(studentTable(await call('get_students', { test_id: T.id }))); } catch (e) { listBox.replaceChildren(h('div', { class: 'alert' }, errText(e))); }
+          } }, 'View list') : null,
+          T.students ? h('button', { class: 'btn danger', onclick: async () => {
+            if (!confirm('Remove the student list? Then anyone allowed by the domain setting can log in.')) return;
+            try { await call('set_students', { test_id: T.id, students: [] }); reload('students'); } catch (e) { alert(errText(e)); }
+          } }, 'Remove list') : null),
+        fileIn, listBox), box);
+    }
+    const studentTable = rows => h('div', { class: 'tscroll' }, h('table', { class: 't' },
+      h('thead', null, h('tr', null, h('th', null, 'Email'), h('th', null, 'Name'), h('th', null, 'Roll'))),
+      h('tbody', null, rows.map(s => h('tr', null, h('td', null, s.email), h('td', null, s.name), h('td', null, s.roll))))));
+
+    /* ---- results ---- */
+    let R = null, filter = '', auto = true;
+    function drawResults(body) {
+      const area = h('div', { class: 'muted center card' }, 'Loading results…');
+      add(body, area);
+      async function load() {
+        try { R = await call('results', { test_id: T.id }); R.fetchedAt = Date.now(); paint(); }
+        catch (e) { if (pass) area.replaceChildren(h('div', { class: 'alert' }, errText(e))); }
+      }
+      function paint() {
+        const at = R.attempts;
+        const off = Date.parse(R.server_now) - R.fetchedAt;
+        const sub = at.filter(a => a.submitted_at), prog = at.filter(a => !a.submitted_at);
+        const avg = sub.length ? sub.reduce((s, a) => s + Number(a.score || 0), 0) / sub.length : 0;
+        const maxScore = (at[0] && at[0].total || countQ()) * Number(T.marks_correct);
+        const q = filter.trim().toLowerCase();
+        const rows = at.filter(a => !q || (a.name + ' ' + a.email + ' ' + a.roll).toLowerCase().includes(q));
+        const search = h('input', { type: 'text', placeholder: 'Search name, email or roll', value: filter, oninput: e => { filter = e.target.value; paint(); const s = area.querySelector('input'); s.focus(); s.setSelectionRange(s.value.length, s.value.length); } });
+        const statusPill = a => {
+          if (!a.submitted_at) {
+            const left = Date.parse(a.deadline) - (Date.now() + off);
+            return h('span', { class: 'pill warn', style: 'white-space:normal' }, 'In progress · ' + a.answered + '/' + a.total + ' · ' + fmtClock(left) + ' left' + (a.unlocked ? ' · unlocked' : ''));
+          }
+          const m = { submitted: ['ok', 'Submitted'], time_up: ['ok', 'Time up'], tab_switch_limit: ['bad', 'Auto: left window'], ended_by_admin: ['gray', 'Ended by admin'] }[a.submit_reason] || ['ok', 'Submitted'];
+          return h('span', { class: 'pill ' + m[0] }, m[1]);
+        };
+        const act = a => h('div', { style: 'display:flex;flex-direction:column;gap:4px;align-items:stretch' },
+          !a.submitted_at ? h('button', { class: 'btn sm', title: 'Let this student continue on another device', onclick: () => doAct('unlock', a, 'Unlocked — ' + a.email + ' can now log in again on any device.') }, 'Unlock') : null,
+          !a.submitted_at ? h('button', { class: 'btn sm', onclick: () => {
+            const m = parseInt(prompt('Add how many minutes for ' + a.name + '?', '10'), 10); if (m > 0) doAct('extend', a, 'Added ' + m + ' min', { minutes: m });
+          } }, '+ Time') : null,
+          h('button', { class: 'btn sm danger', onclick: () => {
+            if (confirm('Reset ' + a.name + ' (' + a.email + ')? Their attempt and answers are deleted and they can start again from zero.')) doAct('reset_attempt', a, 'Attempt reset');
+          } }, 'Reset'));
+        area.className = '';
+        area.replaceChildren(
+          h('div', { class: 'card stack' },
+            h('div', { class: 'stats' },
+              h('div', { class: 'stat' }, h('b', null, at.length), 'Started'),
+              h('div', { class: 'stat' }, h('b', { style: 'color:var(--warn)' }, prog.length), 'In progress'),
+              h('div', { class: 'stat' }, h('b', { style: 'color:var(--ok)' }, sub.length), 'Submitted')),
+            sub.length ? h('div', { class: 'small muted center' }, 'Average score ' + num(avg) + ' / ' + num(maxScore)) : null,
+            h('div', { class: 'row' },
+              h('button', { class: 'btn primary', onclick: exportXlsx, disabled: !at.length }, 'Export Excel'),
+              h('button', { class: 'btn', onclick: load }, 'Refresh'),
+              h('label', { class: 'check small', style: 'align-items:center' },
+                h('input', { type: 'checkbox', checked: auto, onchange: e => { auto = e.target.checked; setAuto(); } }), h('span', null, 'Auto-refresh')),
+              prog.length ? h('button', { class: 'btn danger', onclick: async () => {
+                if (!confirm('End the test for everyone now? All ' + prog.length + ' in-progress attempts are submitted with their saved answers, and the test is closed.')) return;
+                try { await call('finish_all', { test_id: T.id }); T.is_open = false; toast('Test ended'); drawTest(); } catch (e) { alert(errText(e)); }
+              } }, 'End test for all') : null)),
+          h('div', { class: 'card' }, search,
+            h('div', { class: 'tscroll', style: 'margin-top:10px' }, h('table', { class: 't' },
+              h('thead', null, h('tr', null, h('th', null, '#'), h('th', null, 'Student / status'),
+                h('th', { class: 'n' }, 'Score'), h('th', null, ''))),
+              h('tbody', null, rows.length ? rows.map((a, i) => h('tr', null,
+                h('td', { class: 'muted' }, i + 1),
+                h('td', null, h('b', null, a.name), h('div', { class: 'small muted', style: 'word-break:break-all' }, a.email + (a.roll ? ' · ' + a.roll : '')),
+                  h('div', { style: 'margin-top:4px' }, statusPill(a)),
+                  a.switches ? h('div', { class: 'small', style: 'color:var(--bad);font-weight:600;margin-top:3px' }, 'Left window ' + a.switches + '×') : null),
+                h('td', { class: 'n' }, a.submitted_at ? h('b', null, num(a.score)) : '–', a.submitted_at ? h('div', { class: 'small muted', style: 'white-space:nowrap' }, a.correct + '✓ ' + a.wrong + '✗') : null),
+                h('td', null, act(a))))
+                : h('tr', null, h('td', { colspan: 4, class: 'muted center' }, at.length ? 'No match.' : 'Nobody has started yet.')))))));
+      }
+      async function doAct(action, a, msg, extra) {
+        try { await call(action, Object.assign({ test_id: T.id, email: a.email }, extra || {})); toast(msg); load(); }
+        catch (e) { alert(errText(e)); }
+      }
+      function setAuto() { clearInterval(autoT); if (auto) autoT = setInterval(() => { if (tab === 'results' && T && !document.hidden) load(); }, 15000); }
+      setAuto();
+      load();
+    }
+
+    async function exportXlsx() {
+      try { await loadXLSX(); } catch (e) { return alert(e.message); }
+      const secs = R.sections, topics = [...R.topics].sort();
+      const mc = Number(T.marks_correct);
+      const reason = { submitted: 'Submitted', time_up: 'Time up', tab_switch_limit: 'Auto-submitted (left window)', ended_by_admin: 'Ended by admin' };
+      const totalN = a => a.total || 0;
+      const head = ['Rank', 'Name', 'Email', 'Roll No.', 'Status', 'Score', 'Max Score', 'Percentage', 'Correct', 'Wrong', 'Unattempted', 'Left-window count', 'Started', 'Submitted'];
+      secs.forEach(s => head.push(s + ' (correct)'));
+      const rows = [head];
+      const sorted = [...R.attempts].sort((a, b) => (b.submitted_at ? 1 : 0) - (a.submitted_at ? 1 : 0) || Number(b.score || 0) - Number(a.score || 0) || a.name.localeCompare(b.name));
+      let rank = 0, prev = null;
+      sorted.forEach((a, i) => {
+        if (a.submitted_at && Number(a.score) !== prev) { rank = i + 1; prev = Number(a.score); }
+        const max = totalN(a) * mc;
+        const row = [a.submitted_at ? rank : '', a.name, a.email, a.roll,
+          a.submitted_at ? (reason[a.submit_reason] || 'Submitted') : 'In progress',
+          a.submitted_at ? Number(a.score) : '', max, a.submitted_at && max ? Math.round(Number(a.score) / max * 10000) / 100 : '',
+          a.correct ?? '', a.wrong ?? '', a.submitted_at ? totalN(a) - a.correct - a.wrong : '',
+          a.switches, fmtDT(a.started_at), fmtDT(a.submitted_at)];
+        secs.forEach(s => row.push(a.detail && a.detail.sections && a.detail.sections[s] ? a.detail.sections[s].c : ''));
+        rows.push(row);
+      });
+      const ws1 = XLSX.utils.aoa_to_sheet(rows);
+      ws1['!cols'] = head.map((x, i) => ({ wch: i === 1 ? 24 : i === 2 ? 30 : Math.max(10, Math.min(28, x.length + 2)) }));
+
+      const tn = {};
+      R.attempts.forEach(a => a.detail && Object.entries(a.detail.topics || {}).forEach(([k, v]) => { tn[k] = v.n; }));
+      const thead = ['Name', 'Email', 'Roll No.'];
+      topics.forEach(t => thead.push(t + ' (/' + (tn[t] || '') + ')'));
+      const trows = [thead];
+      sorted.filter(a => a.submitted_at).forEach(a => {
+        const r = [a.name, a.email, a.roll];
+        topics.forEach(t => r.push(a.detail && a.detail.topics && a.detail.topics[t] ? a.detail.topics[t].c : 0));
+        trows.push(r);
+      });
+      const avgRow = ['Class average (%)', '', ''];
+      topics.forEach(t => {
+        const sub = sorted.filter(a => a.submitted_at && a.detail && a.detail.topics && a.detail.topics[t]);
+        const c = sub.reduce((s, a) => s + a.detail.topics[t].c, 0), n = sub.reduce((s, a) => s + a.detail.topics[t].n, 0);
+        avgRow.push(n ? Math.round(c / n * 1000) / 10 : '');
+      });
+      trows.push([], avgRow);
+      const ws2 = XLSX.utils.aoa_to_sheet(trows);
+      ws2['!cols'] = thead.map((x, i) => ({ wch: i === 0 ? 24 : i === 1 ? 30 : Math.max(10, Math.min(30, x.length + 2)) }));
+
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws1, 'Results');
+      XLSX.utils.book_append_sheet(wb, ws2, 'Topic-wise');
+      const safe = T.title.replace(/[^\w\- ]+/g, '').trim().replace(/\s+/g, '_').slice(0, 40) || 'test';
+      XLSX.writeFile(wb, safe + '_results.xlsx');
+    }
+
+    return { start };
+  })();
+
+  window.addEventListener('hashchange', () => {
+    if (location.hash.startsWith('#admin') || !document.body.classList.contains('exam')) route();
+  });
+  route();
+})();
+
+</script>
+</body>
+</html>
