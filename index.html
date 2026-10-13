@@ -140,6 +140,12 @@ details>summary{cursor:pointer;font-weight:600;padding:4px 0}
 .bottombar .btn{white-space:nowrap;padding:10px 12px}
 @media (max-width:520px){.qhead .secname{display:none}.bottombar .in{gap:6px}.bottombar .btn{padding:10px 9px}}
 @media (max-width:520px){.atab{padding:10px 9px}.wrap{padding:12px}.card{padding:14px}}
+.fsgate{position:fixed;inset:0;z-index:45;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:16px}
+.fsgate .sheet{border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow)}
+body.gated .exam-grid,body.gated .bottombar,body.gated .topbar{visibility:hidden}
+.overlay.keep{z-index:60}
+.bar{height:10px;border-radius:99px;background:var(--bg);border:1px solid var(--line);overflow:hidden}
+.bar>i{display:block;height:100%;background:var(--brand);width:0;transition:width .2s}
 
 </style>
 </head>
@@ -153,7 +159,8 @@ window.CT_CONFIG = {
   supabaseKey: "sb_publishable_2Uj1C8MU3BZkCASFbw_ZAg_A3R8xzHE",
   orgName: "CDC · Acropolis Institute",
   logoText: "CDC",
-  defaultDomain: ""
+  defaultDomain: "",
+  requireFullscreen: true
 };
 /* ================================================== */
 </script>
@@ -454,6 +461,12 @@ window.CT_CONFIG = {
   /* ================================================================
      STUDENT
      ================================================================ */
+  const FS_REQUIRED = CFG.requireFullscreen !== false;
+  const fsSupported = () => !!(document.fullscreenEnabled || document.webkitFullscreenEnabled);
+  const isFs = () => !!(document.fullscreenElement || document.webkitFullscreenElement);
+  const fsBlocked = () => FS_REQUIRED && !fsSupported();
+  const FS_BLOCK_MSG = 'This test must run in full screen, and this browser does not allow it (iPhones and some in-app browsers cannot). Please use a lab computer with Chrome, Edge or Firefox, or Chrome on an Android phone.';
+
   const Student = (() => {
     let S = null;
     const key = code => 'ct_attempt_' + code;
@@ -510,6 +523,7 @@ window.CT_CONFIG = {
         h('li', null, max > 0
           ? 'Do not switch tabs, apps or windows. Each switch is recorded; after ' + max + ' warning' + (max > 1 ? 's' : '') + ' your test is submitted automatically.'
           : 'Do not switch tabs, apps or windows. Every switch is recorded and reported.'),
+        FS_REQUIRED ? h('li', null, 'The test runs in full screen. If you leave full screen, the questions are hidden and it counts as leaving the test window.') : null,
         h('li', null, 'Copy, paste and right-click are disabled. Only one attempt is allowed per email.'));
     }
 
@@ -535,6 +549,7 @@ window.CT_CONFIG = {
         if (info.needs_pin && !pin.value.trim()) return showErr('Please enter your PIN.');
         if (info.needs_access_code && !access.value.trim()) return showErr('Please enter the access code.');
         if (!agree.checked) return showErr('Please read the rules and tick the box to continue.');
+        if (fsBlocked()) return showErr(FS_BLOCK_MSG);
         requestFs();
         btn.disabled = true; btn.textContent = 'Starting…';
         try {
@@ -554,6 +569,7 @@ window.CT_CONFIG = {
           h('h3', { style: 'margin-top:14px' }, 'Rules'), rulesList(info)),
         h('div', { class: 'card stack' },
           notice ? h('div', { class: 'alert warn' }, notice) : null,
+          fsBlocked() ? h('div', { class: 'alert' }, FS_BLOCK_MSG) : null,
           closed ? h('div', { class: 'alert warn' }, 'The test has not been opened yet. Fill in your details and press Start once the invigilator opens it.') : null,
           h('label', { class: 'f' }, h('span', null, 'Email'), email),
           h('div', { class: 'grid2' },
@@ -569,6 +585,7 @@ window.CT_CONFIG = {
       const err = h('div', { class: 'alert hidden' });
       const btn = h('button', { class: 'btn primary block', onclick: go }, 'Continue my test');
       async function go() {
+        if (fsBlocked()) { err.textContent = FS_BLOCK_MSG; err.classList.remove('hidden'); return; }
         requestFs();
         btn.disabled = true; btn.textContent = 'Loading…';
         try {
@@ -592,7 +609,11 @@ window.CT_CONFIG = {
 
     function requestFs() {
       const el = document.documentElement;
-      try { const p = (el.requestFullscreen || el.webkitRequestFullscreen || function () {}).call(el); if (p && p.catch) p.catch(() => {}); } catch {}
+      try {
+        const p = (el.requestFullscreen || el.webkitRequestFullscreen || function () {}).call(el);
+        if (p && p.catch) return p.then(() => true, () => false);
+      } catch {}
+      return Promise.resolve(isFs());
     }
     function exitFs() {
       try { if (document.fullscreenElement) document.exitFullscreen().catch(() => {}); } catch {}
@@ -611,7 +632,7 @@ window.CT_CONFIG = {
         switches: Math.max(p.switches || 0, same ? saved.switches || 0 : 0),
         cur: same && saved.cur < flat.length ? saved.cur : 0,
         deadline: Date.parse(p.deadline), offset: Date.parse(p.server_now) - Date.now(),
-        dirty: same, ver: 0, lastSync: 0, submitted: false, submitting: false, lastViol: 0, wasFull: !!document.fullscreenElement,
+        dirty: same, ver: 0, lastSync: 0, submitted: false, submitting: false, lastViol: 0, wasFull: isFs(),
         timers: [],
       };
       S.visited.add(flat[S.cur].q.id);
@@ -622,6 +643,7 @@ window.CT_CONFIG = {
       tick();
       if (S.dirty) sync(true);
       bindGuards();
+      updateGate();
     }
 
     function persist() {
@@ -633,6 +655,20 @@ window.CT_CONFIG = {
     function buildExam() {
       const p = S.p;
       E.timer = h('div', { class: 'timer' }, '--:--');
+      E.gateTimer = h('div', { class: 'timer' }, '--:--');
+      E.gateMsg = h('p', null, '');
+      E.gateErr = h('div', { class: 'alert warn small hidden' });
+      E.gate = h('div', { class: 'fsgate hidden' }, h('div', { class: 'sheet stack center' },
+        h('div', { style: 'font-size:40px' }, '🔒'),
+        h('h2', null, 'Full screen required'),
+        E.gateMsg,
+        h('div', { class: 'row', style: 'justify-content:center' }, h('span', { class: 'muted small' }, 'Time left'), E.gateTimer),
+        E.gateErr,
+        h('button', { class: 'btn primary block', onclick: async () => {
+          E.gateErr.classList.add('hidden');
+          const ok = await requestFs();
+          if (!ok && !isFs()) { E.gateErr.textContent = 'Your browser did not switch to full screen. Tap the button again. If it keeps failing, call the invigilator.'; E.gateErr.classList.remove('hidden'); }
+        } }, 'Enter full screen and continue')));
       E.sync = h('div', { class: 'sync', title: 'Saved' });
       E.tabs = h('div', { class: 'tabs' });
       E.main = h('div', { class: 'card' });
@@ -659,7 +695,8 @@ window.CT_CONFIG = {
         h('div', { class: 'bottombar' }, h('div', { class: 'in' },
           E.prev,
           h('button', { class: 'btn', onclick: openPaletteSheet, title: 'All questions' }, '☰'),
-          E.mark, E.next))));
+          E.mark, E.next)),
+        E.gate));
       drawQ();
     }
 
@@ -775,6 +812,7 @@ window.CT_CONFIG = {
       if (!S || S.submitted) return;
       const rem = S.deadline - (Date.now() + S.offset);
       E.timer.textContent = fmtClock(rem);
+      if (E.gateTimer) E.gateTimer.textContent = E.timer.textContent;
       E.timer.classList.toggle('low', rem < 5 * 60000);
       if (rem <= 0 && !S.submitting) submit('time_up', true);
     }
@@ -792,8 +830,9 @@ window.CT_CONFIG = {
       window.addEventListener('focus', () => S && clearTimeout(S.blurT));
       const fsEv = () => {
         if (!S || S.submitted) return;
-        if (document.fullscreenElement || document.webkitFullscreenElement) { S.wasFull = true; return; }
-        if (S.wasFull) violation();
+        if (isFs()) { S.wasFull = true; document.querySelectorAll('.overlay.warnov').forEach(x => x.remove()); }
+        else if (S.wasFull) { S.wasFull = false; violation(); }
+        updateGate();
       };
       document.addEventListener('fullscreenchange', fsEv);
       document.addEventListener('webkitfullscreenchange', fsEv);
@@ -810,6 +849,21 @@ window.CT_CONFIG = {
     }
     const inExam = () => !!(S && !S.submitted && document.body.classList.contains('exam'));
 
+    function updateGate() {
+      if (!S || !E.gate) return;
+      const show = FS_REQUIRED && !S.submitted && !S.submitting && !isFs();
+      E.gate.classList.toggle('hidden', !show);
+      document.body.classList.toggle('gated', show);
+      if (!show) return;
+      document.querySelectorAll('.overlay:not(.keep)').forEach(x => x.remove());
+      const max = S.p.test.max_switches;
+      E.gateMsg.textContent = S.switches
+        ? 'You left full screen or the test window. ' + (max > 0
+            ? 'Warning ' + S.switches + ' of ' + max + '. ' + (S.switches === max ? 'One more time and your test will be submitted automatically.' : 'After ' + max + ' warnings your test is submitted automatically.')
+            : 'This has been recorded (' + S.switches + ' time' + (S.switches > 1 ? 's' : '') + ').') + ' Your timer is still running.'
+        : 'The questions are shown only in full screen. Your timer is running.';
+    }
+
     function violation() {
       if (!inExam() || S.submitting) return;
       const now = Date.now();
@@ -821,6 +875,7 @@ window.CT_CONFIG = {
       sync(true);
       const max = S.p.test.max_switches;
       if (max > 0 && S.switches > max) return submit('tab_switch_limit', true);
+      if (FS_REQUIRED && !isFs()) return updateGate();
       showWarning(max);
     }
     function showWarning(max) {
@@ -869,6 +924,8 @@ window.CT_CONFIG = {
       const ov = modal(h('div', { class: 'stack center' },
         h('h2', null, auto && reason === 'time_up' ? 'Time is up — submitting…' : auto && reason === 'tab_switch_limit' ? 'Submitting your test…' : 'Submitting…'),
         msg), { dismiss: false });
+      ov.el.classList.add('keep');
+      updateGate();
       for (let n = 0; ; n++) {
         try {
           const r = await rpc('ct_submit', { p_token: S.token, p_answers: S.answers, p_switches: S.switches, p_reason: reason });
@@ -886,7 +943,7 @@ window.CT_CONFIG = {
       S.submitted = true;
       S.timers.forEach(clearInterval);
       clearTimeout(S.deb); clearTimeout(S.blurT);
-      document.body.classList.remove('exam');
+      document.body.classList.remove('exam', 'gated');
       store.del(key(S.code));
       exitFs();
     }
@@ -1016,7 +1073,97 @@ window.CT_CONFIG = {
           h('div', { class: 'small muted', style: 'margin-top:4px' },
             'Code ' + t.code + ' · ' + t.questions + ' questions · ' + t.duration_min + ' min · ' +
             t.submitted + '/' + t.attempts + ' submitted'))))
-          : h('div', { class: 'card muted center' }, 'No tests yet. Create your first one.')));
+          : h('div', { class: 'card muted center' }, 'No tests yet. Create your first one.'),
+        loadTestCard()));
+    }
+
+    /* ---- live load test ---- */
+    function loadTestCard() {
+      const nIn = h('input', { type: 'number', min: 10, max: 400, value: 200, inputmode: 'numeric', style: 'max-width:110px' });
+      const out = h('div', { class: 'stack' });
+      const btn = h('button', { class: 'btn', onclick: () => {
+        const n = Math.max(10, Math.min(400, parseInt(nIn.value, 10) || 200));
+        if (!confirm('Run a live load test with ' + n + ' simulated students?\n\nIt creates a temporary test, has ' + n + ' fake students log in, answer all questions and submit at the same time, checks every score, then deletes the temporary test.\n\nDo not run this while a real exam is in progress. Keep this page open until it finishes (about 1 minute).')) return;
+        btn.disabled = true; nIn.disabled = true;
+        runLoadTest(n, out).finally(() => { btn.disabled = false; nIn.disabled = false; });
+      } }, 'Run live load test');
+      return h('details', { class: 'card' },
+        h('summary', null, 'Live load test'),
+        h('div', { class: 'stack', style: 'margin-top:10px' },
+          h('p', { class: 'small muted', style: 'margin:0' }, 'Checks that the live database can handle a full batch at once. Simulated students run from this browser, against the real server.'),
+          h('div', { class: 'row' }, h('span', { class: 'small' }, 'Students'), nIn, btn),
+          out));
+    }
+
+    async function runLoadTest(n, out) {
+      const bar = h('i'), status = h('div', { class: 'small muted' }, 'Preparing…');
+      out.replaceChildren(h('div', { class: 'bar' }, bar), status);
+      const lat = [], fails = [];
+      let done = 0, temp = null;
+      const timed = async (fn, args) => { const t = performance.now(); try { return await rpc(fn, args); } finally { lat.push(performance.now() - t); } };
+      try {
+        temp = await call('save_test', { title: 'LOAD TEST — temporary, safe to delete', duration_min: 60, marks_correct: 1, marks_wrong: 0.25,
+          max_switches: 0, access_code: '', allowed_domain: '', shuffle_questions: true, shuffle_options: true, show_result: false, is_open: false });
+        const mk = (count, tag) => Array.from({ length: count }, (_, k) => ({ topic: tag, text: tag + ' question ' + (k + 1), options: ['Option 1', 'Option 2', 'Option 3', 'Option 4'], correct: k % 4 }));
+        await call('add_section', { test_id: temp.id, name: 'Section A', questions: mk(30, 'Aptitude') });
+        await call('add_section', { test_id: temp.id, name: 'Section B', questions: mk(50, 'Technical') });
+        await call('set_open', { id: temp.id, is_open: true });
+        const full = await call('get_test', { id: temp.id });
+        const key = {};
+        full.sections.forEach(sec => sec.questions.forEach(q => { key[q.id] = q.correct; }));
+        const stamp = Date.now().toString(36);
+        status.textContent = 'Running ' + n + ' students…';
+        const t0 = performance.now();
+        const expected = {};
+        await Promise.all(Array.from({ length: n }, async (_, i) => {
+          try {
+            await sleep(Math.random() * 1000);                     // everyone presses Start within one second
+            const email = 'load' + i + '-' + stamp + '@loadtest.example';
+            const p = await timed('ct_start', { p_code: temp.code, p_email: email, p_name: 'Load ' + i, p_roll: 'L' + i, p_access: '', p_token: null, p_pin: '' });
+            const qs = p.sections.flatMap(x => x.questions);
+            const ans = {}; let c = 0, w = 0;
+            for (let k = 0; k < qs.length; k++) {
+              const q = qs[k], right = (i + k) % 5 !== 0, corr = key[q.id];
+              ans[q.id] = right ? corr : q.options.map(o => o.i).find(x => x !== corr);
+              right ? c++ : w++;
+              if (k % 4 === 3) await timed('ct_save', { p_token: p.token, p_answers: ans, p_switches: 0 });
+            }
+            await timed('ct_submit', { p_token: p.token, p_answers: ans, p_switches: 0, p_reason: 'submitted' });
+            expected[email] = c - w * 0.25;
+          } catch (e) { fails.push(e.message || String(e)); }
+          done++; bar.style.width = (done / n * 100) + '%'; status.textContent = done + ' / ' + n + ' students finished';
+        }));
+        const secs = (performance.now() - t0) / 1000;
+        status.textContent = 'Checking scores…';
+        const R = await call('results', { test_id: temp.id });
+        const sub = R.attempts.filter(a => a.submitted_at);
+        const right = sub.filter(a => expected[a.email] != null && Math.abs(Number(a.score) - expected[a.email]) < 1e-9).length;
+        lat.sort((a, b) => a - b);
+        const pct = p => lat.length ? Math.round(lat[Math.min(lat.length - 1, Math.floor(lat.length * p))]) : 0;
+        const pass = !fails.length && sub.length === n && right === n;
+        const row = (a, b) => h('tr', null, h('td', null, a), h('td', { class: 'n' }, b));
+        out.replaceChildren();
+        add(out,
+          h('div', { class: 'alert ' + (pass ? 'ok' : '') }, pass
+            ? '✓ Passed — all ' + n + ' students logged in, saved, submitted and were scored correctly.'
+            : '✗ Problems found — see details below. Send a screenshot to whoever maintains the site.'),
+          h('table', { class: 't' }, h('tbody', null,
+            row('Students', n),
+            row('Submitted', sub.length + ' / ' + n),
+            row('Scores correct', right + ' / ' + sub.length),
+            row('Failed students', fails.length),
+            row('Requests sent', lat.length),
+            row('Total time', secs.toFixed(1) + ' s'),
+            row('Typical response', pct(0.5) + ' ms'),
+            row('95% of responses within', pct(0.95) + ' ms'),
+            row('Slowest response', pct(1) + ' ms'))),
+          fails.length ? h('div', { class: 'alert warn small' }, 'Errors: ' + [...new Set(fails)].slice(0, 5).join(' · ')) : null,
+          h('p', { class: 'small muted', style: 'margin:0' }, 'A real exam sends far fewer requests than this: about one per student per minute, plus one after each answer.'));
+      } catch (e) {
+        out.replaceChildren(h('div', { class: 'alert' }, 'Load test stopped: ' + errText(e)));
+      } finally {
+        if (temp) { try { await call('delete_test', { id: temp.id }); } catch (e) { out.append(h('div', { class: 'alert warn small' }, 'Could not delete the temporary test — delete “LOAD TEST” from the list yourself.')); } }
+      }
     }
 
     async function changePassword() {

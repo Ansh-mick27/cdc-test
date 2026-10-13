@@ -33,7 +33,8 @@ window.CT_CONFIG = {{
   supabaseKey: "{key}",
   orgName: "CDC · Acropolis Institute",
   logoText: "CDC",
-  defaultDomain: ""
+  defaultDomain: "",
+  requireFullscreen: true
 }};
 /* ================================================== */
 </script>

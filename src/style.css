@@ -130,3 +130,9 @@ details>summary{cursor:pointer;font-weight:600;padding:4px 0}
 .bottombar .btn{white-space:nowrap;padding:10px 12px}
 @media (max-width:520px){.qhead .secname{display:none}.bottombar .in{gap:6px}.bottombar .btn{padding:10px 9px}}
 @media (max-width:520px){.atab{padding:10px 9px}.wrap{padding:12px}.card{padding:14px}}
+.fsgate{position:fixed;inset:0;z-index:45;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:16px}
+.fsgate .sheet{border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow)}
+body.gated .exam-grid,body.gated .bottombar,body.gated .topbar{visibility:hidden}
+.overlay.keep{z-index:60}
+.bar{height:10px;border-radius:99px;background:var(--bg);border:1px solid var(--line);overflow:hidden}
+.bar>i{display:block;height:100%;background:var(--brand);width:0;transition:width .2s}
