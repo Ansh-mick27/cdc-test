@@ -93,6 +93,11 @@ create index if not exists ct_fails_key on ct_fails(key, at);
 create index if not exists ct_sections_test on ct_sections(test_id);
 create index if not exists ct_questions_section on ct_questions(section_id);
 create index if not exists ct_attempts_test on ct_attempts(test_id);
+-- Answers change often during a test: leave room in each page for in-place updates
+-- and clean up old row versions quickly so the database stays small.
+alter table ct_attempts set (fillfactor = 70, autovacuum_vacuum_scale_factor = 0.01,
+  autovacuum_vacuum_threshold = 50, toast.autovacuum_vacuum_scale_factor = 0.01,
+  toast.autovacuum_vacuum_threshold = 50);
 
 -- Lock the tables: the browser may only use the functions below.
 alter table ct_admin    enable row level security;
@@ -348,7 +353,7 @@ end $$;
 
 create or replace function ct_save(p_token uuid, p_answers jsonb, p_switches int default 0) returns jsonb
 language plpgsql security definer set search_path = public as $$
-declare a ct_attempts; t ct_tests;
+declare a ct_attempts; t ct_tests; v_ans jsonb; v_sw int;
 begin
   if pg_column_size(p_answers) > 65536 then raise exception 'PAYLOAD_TOO_LARGE'; end if;
   select * into a from ct_attempts where id = p_token for update;
@@ -361,12 +366,19 @@ begin
     perform ct_finish(a.id, 'time_up');
     return jsonb_build_object('submitted', true, 'reason', 'time_up', 'server_now', now());
   end if;
-  update ct_attempts
-     set answers = ct_clean_answers(a.layout, p_answers),
-         switches = greatest(a.switches, least(coalesce(p_switches, 0), 1000)),
-         last_seen = now(), last_ip = ct_client_ip()
-   where id = a.id
-  returning * into a;
+  v_ans := ct_clean_answers(a.layout, p_answers);
+  v_sw := greatest(a.switches, least(coalesce(p_switches, 0), 1000));
+  if v_ans = a.answers and v_sw = a.switches then
+    -- Nothing changed (routine check-in): only touch the small columns, so the
+    -- stored answers are not rewritten and the database does not grow.
+    if a.last_seen < now() - interval '30 seconds' or a.last_ip <> ct_client_ip() then
+      update ct_attempts set last_seen = now(), last_ip = ct_client_ip() where id = a.id;
+    end if;
+  else
+    update ct_attempts set answers = v_ans, switches = v_sw, last_seen = now(), last_ip = ct_client_ip()
+     where id = a.id
+    returning * into a;
+  end if;
   if t.max_switches > 0 and a.switches > t.max_switches then
     perform ct_finish(a.id, 'tab_switch_limit');
     return jsonb_build_object('submitted', true, 'reason', 'tab_switch_limit', 'server_now', now());
